@@ -2,23 +2,65 @@ import java.io.*;
 import java.net.Socket;
 import java.net.SocketException;
 import java.net.UnknownHostException;
-
 /**
  * 
  * @author cjaiswal
  *
- *  
  * 
  */
-
 public class Player 
 {
     private Socket socket = null;
-    private DataInputStream inStream = null;
-    private DataOutputStream outStream = null;
+    private InputStream inStream = null;
+    private OutputStream outStream = null;
 
+    /**
+     * Serializes an object into a byte array for sending over UDP.
+     * 
+     * @param obj The object to serialize.
+     * @return The serialized byte array.
+     * @throws IOException If an I/O error occurs during serialization.
+     */
+    private byte[] serialize(Object obj) throws IOException {
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        ObjectOutputStream oos = new ObjectOutputStream(bos);
+        oos.writeObject(obj);
+        oos.flush();
+        return bos.toByteArray();
+    }
+
+    /**
+     * Deserializes a byte array back into an object.
+     * 
+     * @param data The byte array to deserialize.
+     * @return The deserialized object.
+     * @throws IOException If an I/O error occurs during deserialization.
+     * @throws ClassNotFoundException If the class of the serialized object cannot be found.
+     */
+    private Object deserialize(byte[] data) throws IOException, ClassNotFoundException {
+        ByteArrayInputStream bis = new ByteArrayInputStream(data);
+        ObjectInputStream ois = new ObjectInputStream(bis);
+        return ois.readObject();
+    }
+    
     public Player() 
     {
+    	//create a socket to connect to localHost's (127.0.0.1) port 3339
+        try 
+        {
+			socket = new Socket("localHost", 3339);
+			System.out.println("Connected!");
+		} 
+        catch (UnknownHostException e) 
+        {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} 
+        catch (IOException e) 
+        {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
         ClientWindow window = new ClientWindow();
     }
 
@@ -26,90 +68,108 @@ public class Player
     {
         try 
         {
-        	//connect to localHost at given port #
-            socket = new Socket("localHost", 3339);
-            System.out.println("Connected");
-            //fetch the streams
-            inStream = new DataInputStream(socket.getInputStream());
-            outStream = new DataOutputStream(socket.getOutputStream());
+        	//fetch the streams
+            inStream = socket.getInputStream();
+            outStream = socket.getOutputStream();
+            createReadThread();
+            createWriteThread();
         } 
-        catch (Exception u) 
+        catch (UnknownHostException u) 
         {
             u.printStackTrace();
         } 
+        catch (IOException io) 
+        {
+            io.printStackTrace();
+        }
     }
 
-    public void receiveFile()
+    public void createReadThread() 
     {
-    	byte [] data = null;
-    	//decide the max buffer size in bytes
-    	//a typical value for a tcp payload is 1000 bytes, this is because of
-    	//the common MTU of the underlying ethernet of 1500 bytes
-    	//HOWEVER their is no optimal value for tcp payload, just a best guess i.e. 1000 bytes
-    	final int MAX_BUFFER = 1000;
-    	try
-    	{
-    		//read the size of the file <- coming from Server
-    		long fileSize = inStream.readLong();
-    		int bufferSize=0;
-    		
-    		//decide the data reading bufferSize
-    		if(fileSize > MAX_BUFFER)
-    			bufferSize = MAX_BUFFER;
-    		else
-    			bufferSize = (int)fileSize;
-    		
-    		data = new byte[bufferSize];
-    		
-    		//insert the path/name of your target file
-    		FileOutputStream fileOut = new FileOutputStream("Assignment-5-Copy.pdf",true);		
-    		
-    		//now read the file coming from Server & save it onto disk
-  
-    		long totalBytesRead = 0;
-    		while(true)
-    		{
-    			//read bufferSize number of bytes from Server
-    			int readBytes = inStream.read(data,0,bufferSize);
+        Thread readThread = new Thread() 
+        {
+            public void run() 
+            {
+                while (socket.isConnected()) 
+                {
+                    try 
+                    {
+                        byte[] readBuffer = new byte[200];
+                        int num = inStream.read(readBuffer);
 
-    			byte[] arrayBytes = new byte[readBytes];
-    			System.arraycopy(data, 0, arrayBytes, 0, readBytes);
-    			totalBytesRead = totalBytesRead + readBytes;
-    			
-    			if(readBytes>0)
-    			{
-    				//write the data to the file
-    				fileOut.write(arrayBytes);
-    	    		fileOut.flush();
-    			}
-
-    			//stop if fileSize number of bytes are read
-    			if(totalBytesRead == fileSize)
-    				break;
-    			
-    			//update fileSize for the last remaining block of data
-    			if((fileSize-totalBytesRead) < MAX_BUFFER)
-    				bufferSize = (int) (fileSize-totalBytesRead);
-    			
-    			//reinitialize the data buffer
-    			data = new byte[bufferSize];
-    		}
-    		System.out.println("File Size is: "+fileSize + ", number of bytes read are: " + totalBytesRead);
-    		
-    		socket.close();
-    		fileOut.close();
-    		inStream.close();
-    	}
-    	catch(Exception e)
-    	{
-    		e.printStackTrace();
-    	}
+                        if (num > 0) 
+                        {
+                            byte[] arrayBytes = new byte[num];
+                            System.arraycopy(readBuffer, 0, arrayBytes, 0, num);
+                            String recvedMessage = new String(arrayBytes, "UTF-8");
+                            System.out.println("Received message :" + recvedMessage);
+                        }
+                        else 
+                        {
+                        	notifyAll();
+                        }
+                    }
+                    catch (SocketException se)
+                    {
+                        System.exit(0);
+                    }
+                    catch (IOException i) 
+                    {
+                        i.printStackTrace();
+                    }
+                }
+            }
+        };
+        readThread.setPriority(Thread.MAX_PRIORITY);
+        readThread.start();
     }
-    
+
+    public void createWriteThread() 
+    {
+        Thread writeThread = new Thread() 
+        {
+            public void run() 
+            {
+                while (socket.isConnected()) 
+                {
+                	try 
+                	{
+                        BufferedReader inputReader = new BufferedReader(new InputStreamReader(System.in));
+                        sleep(100);
+                        String typedMessage = inputReader.readLine();
+                        if (typedMessage != null && typedMessage.length() > 0) 
+                        {
+                            synchronized (socket) 
+                            {
+                                outStream.write(typedMessage.getBytes("UTF-8"));
+                            }
+                            sleep(100);
+                        }
+                        else
+                        {
+                        	notifyAll();
+                        }
+                    } 
+                	catch (IOException i) 
+                	{
+                        i.printStackTrace();
+                    } 
+                	catch (InterruptedException ie) 
+                	{
+                        ie.printStackTrace();
+                    }
+                }
+            }
+        };
+        writeThread.setPriority(Thread.MAX_PRIORITY);
+        writeThread.start();
+    }
+
     public static void main(String[] args) throws Exception 
     {
-        Player fileClient = new Player();
-        fileClient.createSocket();
-        fileClient.receiveFile();
+        Player myChatClient = new Player();
+        myChatClient.createSocket();
+        /*myChatClient.createReadThread();
+�       myChatClient.createWriteThread();*/
     }
 }
