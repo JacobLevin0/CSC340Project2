@@ -1,7 +1,12 @@
 import java.io.*;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
+import java.net.InetAddress;
 import java.net.Socket;
 import java.net.SocketException;
 import java.net.UnknownHostException;
+import java.security.SecureRandom;
+import java.time.LocalTime;
 /**
  * 
  * @author cjaiswal
@@ -11,8 +16,10 @@ import java.net.UnknownHostException;
 public class Player 
 {
     private Socket socket = null;
+    private DatagramSocket UDPSocket = null;
     private InputStream inStream = null;
     private OutputStream outStream = null;
+    private ClientWindow window; 
 
     /**
      * Serializes an object into a byte array for sending over UDP.
@@ -61,7 +68,8 @@ public class Player
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-        ClientWindow window = new ClientWindow();
+        //UDPSocket = new DatagramSocket();
+        window = new ClientWindow();
     }
 
     public void createSocket()
@@ -102,6 +110,7 @@ public class Player
                             byte[] arrayBytes = new byte[num];
                             System.arraycopy(readBuffer, 0, arrayBytes, 0, num);
                             String recvedMessage = new String(arrayBytes, "UTF-8");
+                            window.updateQuestion(recvedMessage);
                             System.out.println("Received message :" + recvedMessage);
                         }
                         else 
@@ -164,6 +173,32 @@ public class Player
         writeThread.setPriority(Thread.MAX_PRIORITY);
         writeThread.start();
     }
+
+    public void poll(){
+        //Thread buzzThread = new Thread(){
+          //  public void run(){
+                int clientID = 1;
+
+                try {
+                    LocalTime time = LocalTime.now();
+                    BuzzMessage packet = new BuzzMessage(clientID, 1, "buzz", time.toString());
+                    InetAddress serverAddress = null; //fill in
+                    int serverPort = 0; //fill in
+                    try {
+                        byte[] data = serialize(packet);
+                        DatagramPacket sendPacket = new DatagramPacket(data, data.length, serverAddress, serverPort);
+                        //socket.send(sendPacket);
+                        //System.out.println("Node " + nodeId + " information sent.");
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            //}
+        //};
+    }
+    
 
     public static void main(String[] args) throws Exception 
     {

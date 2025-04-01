@@ -157,4 +157,10 @@ public class ClientWindow implements ActionListener
 		}
 	}
 	
+	public void updateQuestion(String newQ){
+		question.setText(newQ);
+		/*for(int i = 1; i < 5; i++){
+			options[i].setText(newQ[i]);
+		}*/
+	}
 }
