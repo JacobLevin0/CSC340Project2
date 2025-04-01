@@ -109,7 +109,9 @@ public class Player
                         {
                             byte[] arrayBytes = new byte[num];
                             System.arraycopy(readBuffer, 0, arrayBytes, 0, num);
+                            //TCPPacket rec = (TCPPacket) deserialize(arrayBytes);
                             String recvedMessage = new String(arrayBytes, "UTF-8");
+
                             window.updateQuestion(recvedMessage);
                             System.out.println("Received message :" + recvedMessage);
                         }
@@ -175,28 +177,34 @@ public class Player
     }
 
     public void poll(){
-        //Thread buzzThread = new Thread(){
-          //  public void run(){
+        Thread buzzThread = new Thread(){
+            public void run(){
                 int clientID = 1;
-
+                try {
+                    UDPSocket = new DatagramSocket(8765);
+                } catch (SocketException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
                 try {
                     LocalTime time = LocalTime.now();
                     BuzzMessage packet = new BuzzMessage(clientID, 1, "buzz", time.toString());
-                    InetAddress serverAddress = null; //fill in
-                    int serverPort = 0; //fill in
+                    InetAddress serverAddress = InetAddress.getLocalHost(); //fill in
+                    int serverPort = UDPSocket.getPort(); //fill in
                     try {
                         byte[] data = serialize(packet);
                         DatagramPacket sendPacket = new DatagramPacket(data, data.length, serverAddress, serverPort);
-                        //socket.send(sendPacket);
-                        //System.out.println("Node " + nodeId + " information sent.");
+                        UDPSocket.send(sendPacket);
+                        System.out.println("Poll sent to server");
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
-            //}
-        //};
+            }
+        };
+        buzzThread.start();
     }
     
 
