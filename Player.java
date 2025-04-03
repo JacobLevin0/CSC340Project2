@@ -104,12 +104,11 @@ public class Player
                     {
                         byte[] readBuffer = new byte[200];
                         int num = inStream.read(readBuffer);
-
                         if (num > 0) 
                         {
                             byte[] arrayBytes = new byte[num];
                             System.arraycopy(readBuffer, 0, arrayBytes, 0, num);
-                            //TCPPacket rec = (TCPPacket) deserialize(arrayBytes);
+                            TCPPacket rec = (TCPPacket) deserialize(arrayBytes);
                             String recvedMessage = new String(arrayBytes, "UTF-8");
 
                             window.updateQuestion(recvedMessage);
@@ -127,6 +126,9 @@ public class Player
                     catch (IOException i) 
                     {
                         i.printStackTrace();
+                    } catch (ClassNotFoundException e) {
+                        // TODO Auto-generated catch block
+                        e.printStackTrace();
                     }
                 }
             }
