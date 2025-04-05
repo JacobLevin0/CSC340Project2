@@ -20,6 +20,8 @@ public class Player
     private InputStream inStream = null;
     private OutputStream outStream = null;
     private ClientWindow window; 
+    private int clientID;
+    private String TCPMessage;
 
     /**
      * Serializes an object into a byte array for sending over UDP.
@@ -69,7 +71,7 @@ public class Player
 			e.printStackTrace();
 		}
         //UDPSocket = new DatagramSocket();
-        window = new ClientWindow();
+        window = new ClientWindow(this);
     }
 
     public void createSocket()
@@ -104,16 +106,27 @@ public class Player
                     {
                         byte[] readBuffer = new byte[200];
                         int num = inStream.read(readBuffer);
-
                         if (num > 0) 
                         {
                             byte[] arrayBytes = new byte[num];
                             System.arraycopy(readBuffer, 0, arrayBytes, 0, num);
-                            //TCPPacket rec = (TCPPacket) deserialize(arrayBytes);
-                            String recvedMessage = new String(arrayBytes, "UTF-8");
-
-                            window.updateQuestion(recvedMessage);
-                            System.out.println("Received message :" + recvedMessage);
+                            TCPPacket rec = (TCPPacket) deserialize(arrayBytes);
+                            //String recvedMessage = new String(arrayBytes, "UTF-8");
+                            switch (rec.getMessage()) {
+                                case "question":
+                                    window.updateQuestion(rec.getData());
+                                    break;
+                                case "timer":
+                                    break;
+                                case "results":
+                                    System.out.println();
+                                    break;
+                                default:
+                                    System.out.println("Error: No message matched on recieving packet");
+                                    break;
+                            }
+                            
+                            System.out.println("Received message :" + rec);
                         }
                         else 
                         {
@@ -127,6 +140,9 @@ public class Player
                     catch (IOException i) 
                     {
                         i.printStackTrace();
+                    } catch (ClassNotFoundException e) {
+                        // TODO Auto-generated catch block
+                        e.printStackTrace();
                     }
                 }
             }
@@ -145,14 +161,30 @@ public class Player
                 {
                 	try 
                 	{
-                        BufferedReader inputReader = new BufferedReader(new InputStreamReader(System.in));
+                        /*BufferedReader inputReader = new BufferedReader(new InputStreamReader(System.in));
                         sleep(100);
-                        String typedMessage = inputReader.readLine();
-                        if (typedMessage != null && typedMessage.length() > 0) 
+                        String typedMessage = inputReader.readLine();*/
+                        TCPPacket packet = null;
+                        switch (TCPMessage) {
+                            case "answer":
+                                String[] data = {/*clientwindow.getAnswer()*/};
+                                packet = new TCPPacket(clientID, TCPMessage, data, 0);
+                                break;
+                            case "score":
+                                int score = 0; /*clientwindow.getScore()*/
+                                packet = new TCPPacket(clientID, TCPMessage, null, score);
+                                break;
+                            default:
+                                System.out.println("Error: No packet with that message can be created");
+                                break;
+                        }
+                        
+                        byte[] sendPacket = serialize(packet);
+                        if (sendPacket != null) 
                         {
                             synchronized (socket) 
                             {
-                                outStream.write(typedMessage.getBytes("UTF-8"));
+                                outStream.write(sendPacket);
                             }
                             sleep(100);
                         }
