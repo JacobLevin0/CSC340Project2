@@ -35,7 +35,7 @@ public class TCPServerFile
 
     public TCPServerFile() {
 		try {
-            udpSocket = new DatagramSocket(1899);
+            udpSocket = new DatagramSocket(8765);
         	//socket = new DatagramSocket(9876); // Bind tcpserver to port 9876
             //executor = Executors.newFixedThreadPool(3); need to make dynamic 
             //configLoader = new ConfigLoader(); // need to update class to work for trivia
@@ -82,7 +82,7 @@ public class TCPServerFile
     	final int MAX_BUFFER = 1000;
     	byte [] data = null;
     	int bufferSize = 0;
-    	try
+    	/*try
     	{
     		//	write the filename below in the File constructor
     		File file = new File("Assignment-5-Fall18.pdf");
@@ -137,7 +137,7 @@ public class TCPServerFile
     	catch(Exception e)
     	{
     		e.printStackTrace();
-    	}
+    	}*/
     }
 
 	private Runnable listenerTask = () -> {
