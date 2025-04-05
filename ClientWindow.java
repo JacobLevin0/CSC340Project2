@@ -18,6 +18,8 @@ public class ClientWindow implements ActionListener
 	private JLabel timer;
 	private JLabel score;
 	private TimerTask clock;
+
+	private Player player;
 	
 	private JFrame window;
 	
@@ -25,7 +27,7 @@ public class ClientWindow implements ActionListener
 	
 	// write setters and getters as you need
 	
-	public ClientWindow()
+	public ClientWindow(Player player)
 	{
 		JOptionPane.showMessageDialog(window, "This is a trivia game");
 		
@@ -75,6 +77,8 @@ public class ClientWindow implements ActionListener
 		window.setVisible(true);
 		window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		window.setResizable(false);
+
+		this.player = player;
 	}
 
 	// this method is called when you check/uncheck any radio button
@@ -97,6 +101,7 @@ public class ClientWindow implements ActionListener
 			case "Option 4":	// Your code here
 								break;
 			case "Poll":		// Your code here
+								player.poll();
 								break;
 			case "Submit":		// Your code here
 								break;
@@ -157,10 +162,10 @@ public class ClientWindow implements ActionListener
 		}
 	}
 	
-	public void updateQuestion(String newQ){
-		question.setText(newQ);
-		/*for(int i = 1; i < 5; i++){
+	public void updateQuestion(String[] newQ){
+		question.setText(newQ[0]);
+		for(int i = 1; i < 5; i++){
 			options[i].setText(newQ[i]);
-		}*/
+		}
 	}
 }

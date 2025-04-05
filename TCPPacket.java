@@ -15,10 +15,11 @@ public class TCPPacket implements Serializable {
 
     
 
-    public TCPPacket(int clientId, String message, int score) {
+    public TCPPacket(int clientId, String message, String[] data, int score) {
         this.clientId = clientId;
         this.message = message;
         this.score = score;
+        this.data = data;
     }
 
     public int getClientId() {
@@ -45,7 +46,9 @@ public class TCPPacket implements Serializable {
         this.score = score;
     }
 
-
+    public String[] getData(){
+        return data;
+    }
 
     
 }
