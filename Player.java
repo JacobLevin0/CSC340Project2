@@ -157,7 +157,7 @@ public class Player
         {
             public void run() 
             {
-                while (socket.isConnected()) 
+                 
                 {
                 	try 
                 	{
