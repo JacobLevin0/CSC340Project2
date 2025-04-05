@@ -6,6 +6,7 @@ import java.net.Socket;
 import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.security.SecureRandom;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 /**
  * 
@@ -58,6 +59,7 @@ public class Player
         try 
         {
 			socket = new Socket("localHost", 3339);
+            UDPSocket = new DatagramSocket(8766);
 			System.out.println("Connected!");
 		} 
         catch (UnknownHostException e) 
@@ -82,7 +84,7 @@ public class Player
             inStream = socket.getInputStream();
             outStream = socket.getOutputStream();
             createReadThread();
-            createWriteThread();
+            //createWriteThread();
         } 
         catch (UnknownHostException u) 
         {
@@ -151,14 +153,12 @@ public class Player
         readThread.start();
     }
 
-    public void createWriteThread() 
+    public void createWriteThread(String TCPMessage) 
     {
         Thread writeThread = new Thread() 
         {
             public void run() 
             {
-                 
-                {
                 	try 
                 	{
                         /*BufferedReader inputReader = new BufferedReader(new InputStreamReader(System.in));
@@ -202,7 +202,6 @@ public class Player
                         ie.printStackTrace();
                     }
                 }
-            }
         };
         writeThread.setPriority(Thread.MAX_PRIORITY);
         writeThread.start();
@@ -212,17 +211,12 @@ public class Player
         Thread buzzThread = new Thread(){
             public void run(){
                 int clientID = 1;
+                
                 try {
-                    UDPSocket = new DatagramSocket(8765);
-                } catch (SocketException e) {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
-                }
-                try {
-                    LocalTime time = LocalTime.now();
+                    LocalDateTime time = LocalDateTime.now();
                     BuzzMessage packet = new BuzzMessage(clientID, 1, "buzz", time.toString());
                     InetAddress serverAddress = InetAddress.getLocalHost(); //fill in
-                    int serverPort = UDPSocket.getPort(); //fill in
+                    int serverPort = 8765; //fill in
                     try {
                         byte[] data = serialize(packet);
                         DatagramPacket sendPacket = new DatagramPacket(data, data.length, serverAddress, serverPort);

@@ -82,7 +82,7 @@ public class TCPServerFile
     	final int MAX_BUFFER = 1000;
     	byte [] data = null;
     	int bufferSize = 0;
-    	try
+    	/*try
     	{
     		//	write the filename below in the File constructor
     		File file = new File("Assignment-5-Fall18.pdf");
@@ -137,7 +137,7 @@ public class TCPServerFile
     	catch(Exception e)
     	{
     		e.printStackTrace();
-    	}
+    	}*/
     }
 
 	private Runnable listenerTask = () -> {
