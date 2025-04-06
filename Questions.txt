@@ -1,0 +1,22 @@
+Question Number| Question | Option 1 | Option 2 | Option 3 | Option 4 | Answer
+1 What is the capital of Canada? | Toronto | Vancouver | Ottawa | Montreal | Ottawa
+2 Which planet is known as the Red Planet? | Venus | Jupiter | Mars | Saturn | Mars
+3 Who wrote Romeo and Juliet? | Charles Dickens | William Shakespeare | Mark Twain | Jane Austen | William Shakespeare
+4 What is the chemical symbol for gold? | Ag | Au | Pb | Fe | Au
+5 Which country is famous for inventing pizza? | France | Greece | Italy | Spain | Italy
+6 What is the largest ocean on Earth? | Atlantic Ocean | Indian Ocean | Arctic Ocean | Pacific Ocean | Pacific Ocean
+7 Which gas do plants primarily use for photosynthesis? | Oxygen | Carbon dioxide | Nitrogen | Hydrogen | Carbon dioxide
+8 Who painted the Mona Lisa? | Vincent van Gogh | Leonardo da Vinci | Pablo Picasso | Michelangelo | Leonardo da Vinci
+9 What is the smallest unit of life? | Atom | Cell | Molecule | Tissue | Cell
+10 Which element is essential for breathing and life? | Hydrogen | Oxygen | Nitrogen | Helium | Oxygen
+11 Which continent is home to the Amazon Rainforest? | Africa | Asia | South America | Australia | South America
+12 Who was the first person to walk on the moon? | Buzz Aldrin | Yuri Gagarin | Neil Armstrong | John Glenn | Neil Armstrong
+13 What is the hardest natural substance on Earth? | Iron | Gold | Diamond | Quartz | Diamond
+14 Which country has the most spoken native language in the world? | USA | China | India | Brazil | China
+15 How many sides does a hexagon have? | 4 | 5 | 6 | 8 | 6
+16 What is the longest river in the world? | Amazon River | Mississippi River | Nile River | Yangtze River | Nile River
+17 What is the tallest mountain in the world? | Mount Kilimanjaro | Mount Everest | Mount McKinley | Mount Fuji | Mount Everest
+18 Which instrument has 88 keys? | Guitar | Piano | Violin | Trumpet | Piano
+19 What is the chemical formula for water? | CO₂ | H₂O | O₂ | CH₄ | H₂O
+20 Which New York landmark is known as "Lady Liberty"? | Empire State Building | Chrysler Building | Statue of Liberty | Brooklyn Bridge | Statue of Liberty
+
