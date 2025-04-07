@@ -185,4 +185,10 @@ public class ClientWindow implements ActionListener
 	public String getAnswer(){
 		return currAnswer;
 	}
+
+	public void updateTimerDuration(int time){
+		clock = new TimerCode(time);
+		Timer t = new Timer();
+		t.schedule(clock, 0, 1000);
+	}
 }

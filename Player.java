@@ -22,7 +22,6 @@ public class Player
     private OutputStream outStream = null;
     private ClientWindow window; 
     private int clientID;
-    private String TCPMessage;
 
     /**
      * Serializes an object into a byte array for sending over UDP.
@@ -115,10 +114,13 @@ public class Player
                             TCPPacket rec = (TCPPacket) deserialize(arrayBytes);
                             //String recvedMessage = new String(arrayBytes, "UTF-8");
                             switch (rec.getMessage()) {
+                                case "id":
+                                    clientID = rec.getClientId();
                                 case "question":
                                     window.updateQuestion(rec.getData());
                                     break;
                                 case "timer":
+                                    window.updateTimerDuration(rec.getScore());
                                     break;
                                 case "results":
                                     System.out.println();
@@ -129,6 +131,8 @@ public class Player
                                 case "wrong":
                                     window.updateScore(-10);
                                     break;
+                                case "NA":
+                                    window.updateScore(-20);
                                 case "ack":
                                     System.out.println(rec.getMessage());
                                     window.setStatus(true);
@@ -189,9 +193,9 @@ public class Player
                                 break;
                         }
                         
-                        byte[] sendPacket = serialize(packet);
-                        if (sendPacket != null) 
+                        if (packet != null) 
                         {
+                            byte[] sendPacket = serialize(packet);
                             synchronized (socket) 
                             {
                                 outStream.write(sendPacket);
