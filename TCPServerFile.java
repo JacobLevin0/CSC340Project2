@@ -9,10 +9,13 @@ import java.net.SocketException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Queue;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Executors;
 
@@ -31,6 +34,8 @@ public class TCPServerFile
     private DataOutputStream outStream = null;
 	private DatagramSocket udpSocket;
 	private List<BuzzMessage> buzzQueue = new ArrayList<>();
+    private final Map<Integer, ClientInfo> clientMap = new ConcurrentHashMap<>();
+    private int nextNodeId = 1;
 
 
     public TCPServerFile() {
@@ -58,22 +63,48 @@ public class TCPServerFile
         return ois.readObject();
     }
 
-    public void createSocket() 
-    {
-        try 
-        {
-        	//create Server and start listening
+    private synchronized int assignNodeId() {
+        return nextNodeId++;
+    }
+
+    public void registerClient(int nodeId, String ip, int port) {
+        clientMap.put(nodeId, new ClientInfo(nodeId, ip, port));
+    }
+
+    // Set active status
+    public void setClientActive(int nodeId, boolean active) {
+        ClientInfo client = clientMap.get(nodeId);
+        if (client != null) client.setActive(active);
+    }
+
+    // Update client score
+    public void updateClientScore(int nodeId, int score) {
+        ClientInfo client = clientMap.get(nodeId);
+        if (client != null) client.setScore(score);
+    }
+
+    // Get full client info
+    public ClientInfo getClientInfo(int nodeId) {
+        return clientMap.get(nodeId);
+    }
+
+    // Get list of all clients
+    public Collection<ClientInfo> getAllClients() {
+        return clientMap.values();
+    }
+
+    public void createSocket() {
+        try {
             serverSocket = new ServerSocket(3339);
-            //accept the connection
-            socket = serverSocket.accept();
-            //fetch the streams
-            inStream = new DataInputStream(socket.getInputStream());
-            outStream = new DataOutputStream(socket.getOutputStream());
-            System.out.println("Connected");
-        }
-        catch (IOException io) 
-        {
-            io.printStackTrace();
+            System.out.println("Server is listening on port 3339...");
+    
+            while (true) {
+                Socket client = serverSocket.accept();
+                Thread clientThread = new Thread(new ClientHandler(client));
+                clientThread.start();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
     
@@ -149,9 +180,8 @@ public class TCPServerFile
             DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
             udpSocket.receive(packet);
 
-            ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(packet.getData()));
-            Object received = ois.readObject();
-
+            Object received = deserialize(packet.getData());
+            
             if (received instanceof BuzzMessage) {
                 BuzzMessage incoming = (BuzzMessage) received;
                 int clientID = incoming.getClientID();
@@ -192,11 +222,62 @@ public class TCPServerFile
         e.printStackTrace();
     }
 };
-    public static void main(String[] args)
-    {
-    	TCPServerFile fileServer = new TCPServerFile();
-		new Thread(fileServer.listenerTask).start();
-        fileServer.createSocket();
-        fileServer.sendFile();
+
+private class ClientHandler implements Runnable {
+    private Socket clientSocket;
+    private DataInputStream in;
+    private DataOutputStream out;
+    private int nodeId;
+
+    public ClientHandler(Socket socket) {
+        this.clientSocket = socket;
+        this.nodeId = assignNodeId();
+
+        try {
+            this.in = new DataInputStream(clientSocket.getInputStream());
+            this.out = new DataOutputStream(clientSocket.getOutputStream());
+
+            String clientIp = clientSocket.getInetAddress().getHostAddress();
+            int clientPort = clientSocket.getPort();
+
+            registerClient(nodeId, clientIp, clientPort);
+            System.out.println("Registered client " + nodeId + " from " + clientIp + ":" + clientPort);
+            
+            // Optionally, send nodeId back to client
+            out.writeInt(nodeId);
+            out.flush();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
+
+    public void run() {
+        System.out.println("Client connected: " + clientSocket.getInetAddress());
+        try {
+            while (!clientSocket.isClosed()) {
+                byte[] readBuffer = new byte[200];
+                int bytesRead = in.read(readBuffer);
+                if (bytesRead == -1) {
+                    break; // Client disconnected
+                }
+                // Handle data here if needed
+                System.out.println("Received from client: " + new String(readBuffer, 0, bytesRead));
+            }
+        } catch (IOException e) {
+            System.out.println("Client disconnected.");
+        } finally {
+            try {
+                clientSocket.close();
+                System.out.println("Closed client socket.");
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+}
+public static void main(String[] args) {
+    TCPServerFile fileServer = new TCPServerFile();
+    new Thread(fileServer.listenerTask).start(); // UDP listener
+    fileServer.createSocket(); // TCP listener
+}
 }
