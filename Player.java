@@ -123,6 +123,20 @@ public class Player
                                 case "results":
                                     System.out.println();
                                     break;
+                                case "correct":
+                                    window.updateScore(10);
+                                    break;
+                                case "wrong":
+                                    window.updateScore(-10);
+                                    break;
+                                case "ack":
+                                    System.out.println(rec.getMessage());
+                                    window.setStatus(true);
+                                    break;
+                                case "negative-ack":
+                                    System.out.println(rec.getMessage());
+                                    window.setStatus(false);
+                                    break;
                                 default:
                                     System.out.println("Error: No message matched on recieving packet");
                                     break;
@@ -166,13 +180,9 @@ public class Player
                         String typedMessage = inputReader.readLine();*/
                         TCPPacket packet = null;
                         switch (TCPMessage) {
-                            case "answer":
-                                String[] data = {/*clientwindow.getAnswer()*/};
+                            case "My Answer":
+                                String[] data = {window.getAnswer()};
                                 packet = new TCPPacket(clientID, TCPMessage, data, 0);
-                                break;
-                            case "score":
-                                int score = 0; /*clientwindow.getScore()*/
-                                packet = new TCPPacket(clientID, TCPMessage, null, score);
                                 break;
                             default:
                                 System.out.println("Error: No packet with that message can be created");

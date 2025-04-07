@@ -16,8 +16,11 @@ public class ClientWindow implements ActionListener
 	private ButtonGroup optionGroup;
 	private JLabel question;
 	private JLabel timer;
-	private JLabel score;
+	private JLabel scoreLabel;
 	private TimerTask clock;
+	private boolean ableToAnswer;
+	private int score;
+	private String currAnswer;
 
 	private Player player;
 	
@@ -56,9 +59,9 @@ public class ClientWindow implements ActionListener
 		window.add(timer);
 		
 		
-		score = new JLabel("SCORE"); // represents the score
-		score.setBounds(50, 250, 100, 20);
-		window.add(score);
+		scoreLabel = new JLabel("SCORE"); // represents the score
+		scoreLabel.setBounds(50, 250, 100, 20);
+		window.add(scoreLabel);
 
 		poll = new JButton("Poll");  // button that use clicks/ like a buzzer
 		poll.setBounds(10, 300, 100, 20);
@@ -79,6 +82,8 @@ public class ClientWindow implements ActionListener
 		window.setResizable(false);
 
 		this.player = player;
+		ableToAnswer = false;
+		score = 0;
 	}
 
 	// this method is called when you check/uncheck any radio button
@@ -167,5 +172,17 @@ public class ClientWindow implements ActionListener
 		for(int i = 1; i < 5; i++){
 			options[i].setText(newQ[i]);
 		}
+	}
+
+	public void setStatus(boolean status){
+		ableToAnswer = status;
+	}
+
+	public void updateScore(int change){
+		score = score + change;
+	}
+
+	public String getAnswer(){
+		return currAnswer;
 	}
 }
