@@ -259,8 +259,8 @@ public class ClientWindow implements ActionListener
 	
 	public void updateQuestion(String[] newQ){
 		question.setText(newQ[0]);
-		for(int i = 1; i < 5; i++){
-			options[i].setText(newQ[i]);
+		for(int i = 0; i < 4; i++){
+			options[i].setText(newQ[i + 1]);
 		}
 	}
 
