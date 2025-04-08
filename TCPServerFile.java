@@ -162,7 +162,7 @@ public class TCPServerFile
             TCPPacket questionPacket = new TCPPacket(0, "question", fullPacket, 0);
             TCPPacket timerPacket = new TCPPacket(0, "timer", null, 15);
     
-            System.out.println("\n🧠 Sending Question #" + entry.getKey());
+            System.out.println("\nSending Question #" + entry.getKey());
     
             Set<Integer> currentParticipants = ConcurrentHashMap.newKeySet();
             for (ClientInfo client : getAllClients()) {
@@ -179,7 +179,7 @@ public class TCPServerFile
                         out.writeObject(timerPacket);
                         out.flush();
                     } catch (IOException e) {
-                        System.err.println("❌ Failed to send to Node " + client.getNodeId());
+                        System.err.println("Failed to send to Node " + client.getNodeId());
                     }
                 }
             }
@@ -212,7 +212,7 @@ public class TCPServerFile
                         out.writeObject(new TCPPacket(nodeId, "timer", null, 10));
                         out.flush();
                     } catch (IOException e) {
-                        System.err.println("❌ Could not send ACK/timer to node " + nodeId);
+                        System.err.println("Could not send ACK/timer to node " + nodeId);
                         continue;
                     }
                 }
@@ -244,7 +244,7 @@ public class TCPServerFile
     
             buzzQueue.clear();
             playerAnswers.clear();
-            System.out.println("✅ Finished evaluating Question #" + entry.getKey());
+            System.out.println("Finished evaluating Question #" + entry.getKey());
         }
     
         // Print + send leaderboard
@@ -269,7 +269,7 @@ public class TCPServerFile
             }
         }
     
-        System.out.println("\n🎉 All questions complete!");
+        System.out.println("\nAll questions complete!");
     }
     
 
@@ -374,7 +374,7 @@ private class ClientHandler implements Runnable {
                     String[] data = packet.getData();
                     if (data != null && data.length > 0) {
                         playerAnswers.put(packet.getClientId(), data[0]);
-                        System.out.println("📩 Received answer from Node " + packet.getClientId() + ": " + data[0]);
+                        System.out.println("Received answer from Node " + packet.getClientId() + ": " + data[0]);
                     }
                 }
             }
