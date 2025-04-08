@@ -152,7 +152,7 @@ public class TCPServerFile
     
         List<Map.Entry<Integer, QuestionsLoader.QuestionInfo>> entries =
             new ArrayList<>(loader.getQuestions().entrySet());
-        entries.sort(Comparator.comparingInt(Map.Entry::getKey)); // Ensure order
+        entries.sort(Comparator.comparingInt(Map.Entry::getKey));
     
         for (Map.Entry<Integer, QuestionsLoader.QuestionInfo> entry : entries) {
             QuestionsLoader.QuestionInfo q = entry.getValue();
@@ -162,130 +162,94 @@ public class TCPServerFile
             TCPPacket questionPacket = new TCPPacket(0, "question", fullPacket, 0);
             TCPPacket timerPacket = new TCPPacket(0, "timer", null, 15);
     
-            System.out.println("\nSending Question #" + entry.getKey());
+            System.out.println("\n🧠 Sending Question #" + entry.getKey());
     
-            // Step 1: Capture current participants BEFORE question starts
             Set<Integer> currentParticipants = ConcurrentHashMap.newKeySet();
             for (ClientInfo client : getAllClients()) {
                 currentParticipants.add(client.getNodeId());
             }
     
-            // Step 2: Send question + 15s timer to current participants
             for (ClientInfo client : getAllClients()) {
                 if (!currentParticipants.contains(client.getNodeId())) continue;
-    
-                try (Socket clientSocket = new Socket(client.getIp(), client.getPort());
-                     OutputStream out = clientSocket.getOutputStream()) {
-                    System.out.println("Sending to clients: " + Arrays.toString(fullPacket));
-                    out.write(serialize(questionPacket));
-                    out.flush();
-    
-                    out.write(serialize(timerPacket));
-                    out.flush();
-    
-                } catch (IOException e) {
-                    System.err.println("Failed to send question/timer to Node " + client.getNodeId());
-                    e.printStackTrace();
+                ObjectOutputStream out = client.getOutputStream();
+                if (out != null) {
+                    try {
+                        out.writeObject(questionPacket);
+                        out.flush();
+                        out.writeObject(timerPacket);
+                        out.flush();
+                    } catch (IOException e) {
+                        System.err.println("❌ Failed to send to Node " + client.getNodeId());
+                    }
                 }
             }
     
-            // Wait 15 seconds for buzz-in
-            try {
-                Thread.sleep(15_000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
+            try { Thread.sleep(15000); } catch (InterruptedException e) { e.printStackTrace(); }
     
-            // Step 3: Answer phase — cycle through buzzQueue
             while (!buzzQueue.isEmpty()) {
                 BuzzMessage buzz = buzzQueue.remove(0);
                 int nodeId = buzz.getClientID();
                 ClientInfo answeringClient = getClientInfo(nodeId);
                 if (answeringClient == null) continue;
     
-                // Send negative-ack to all others still in the buzz queue
                 for (BuzzMessage b : buzzQueue) {
                     int otherId = b.getClientID();
                     if (otherId == nodeId) continue;
-    
                     ClientInfo otherClient = getClientInfo(otherId);
-                    if (otherClient != null) {
-                        try (Socket socket = new Socket(otherClient.getIp(), otherClient.getPort());
-                             OutputStream out = socket.getOutputStream()) {
-    
-                            TCPPacket nack = new TCPPacket(otherId, "negative-ack", null, 0);
-                            out.write(serialize(nack));
+                    ObjectOutputStream out = otherClient != null ? otherClient.getOutputStream() : null;
+                    if (out != null) {
+                        try {
+                            out.writeObject(new TCPPacket(otherId, "negative-ack", null, 0));
                             out.flush();
-                            System.out.println("Sent negative-ack to Node " + otherId);
-    
-                        } catch (IOException e) {
-                            System.err.println("Could not send negative-ack to Node " + otherId);
-                        }
+                        } catch (IOException ignored) {}
                     }
                 }
     
-                // Send ack and 10s timer to current responder
-                try (Socket socket = new Socket(answeringClient.getIp(), answeringClient.getPort());
-                     OutputStream out = socket.getOutputStream()) {
-    
-                    out.write(serialize(new TCPPacket(nodeId, "ack", null, 0)));
-                    out.write(serialize(new TCPPacket(nodeId, "timer", null, 10)));
-                    out.flush();
-    
-                } catch (IOException e) {
-                    System.err.println("Could not send ACK/timer to node " + nodeId);
-                    continue;
+                ObjectOutputStream out = answeringClient.getOutputStream();
+                if (out != null) {
+                    try {
+                        out.writeObject(new TCPPacket(nodeId, "ack", null, 0));
+                        out.writeObject(new TCPPacket(nodeId, "timer", null, 10));
+                        out.flush();
+                    } catch (IOException e) {
+                        System.err.println("❌ Could not send ACK/timer to node " + nodeId);
+                        continue;
+                    }
                 }
     
-                // Wait for their answer
-                try {
-                    Thread.sleep(10_000);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
+                try { Thread.sleep(10000); } catch (InterruptedException e) { e.printStackTrace(); }
     
                 String givenAnswer = playerAnswers.get(nodeId);
                 String correctAnswer = q.answer.trim();
-    
-                try (Socket socket = new Socket(answeringClient.getIp(), answeringClient.getPort());
-                     OutputStream out = socket.getOutputStream()) {
-    
-                    if (givenAnswer == null) {
-                        updateClientScore(nodeId, answeringClient.getScore() - 20);
-                        out.write(serialize(new TCPPacket(nodeId, "NA", null, 0)));
-                        System.out.println("Node " + nodeId + " did not answer.");
-                    } else if (givenAnswer.equalsIgnoreCase(correctAnswer)) {
-                        updateClientScore(nodeId, answeringClient.getScore() + 10);
-                        out.write(serialize(new TCPPacket(nodeId, "correct", null, 0)));
+                out = answeringClient.getOutputStream();
+                if (out != null) {
+                    try {
+                        if (givenAnswer == null) {
+                            updateClientScore(nodeId, answeringClient.getScore() - 20);
+                            out.writeObject(new TCPPacket(nodeId, "NA", null, 0));
+                        } else if (givenAnswer.equalsIgnoreCase(correctAnswer)) {
+                            updateClientScore(nodeId, answeringClient.getScore() + 10);
+                            out.writeObject(new TCPPacket(nodeId, "correct", null, 0));
+                            out.flush();
+                            break;
+                        } else {
+                            updateClientScore(nodeId, answeringClient.getScore() - 10);
+                            out.writeObject(new TCPPacket(nodeId, "wrong", null, 0));
+                        }
                         out.flush();
-                        System.out.println("Node " + nodeId + " answered correctly.");
-                        break; // Stop at first correct answer
-                    } else {
-                        updateClientScore(nodeId, answeringClient.getScore() - 10);
-                        out.write(serialize(new TCPPacket(nodeId, "wrong", null, 0)));
-                        System.out.println("Node " + nodeId + " answered incorrectly.");
-                    }
-    
-                    out.flush();
-                } catch (IOException e) {
-                    System.err.println("Could not send result to node " + nodeId);
-                    e.printStackTrace();
+                    } catch (IOException ignored) {}
                 }
-    
                 playerAnswers.remove(nodeId);
             }
     
-            // Step 4: Reset state for next question
             buzzQueue.clear();
             playerAnswers.clear();
-            System.out.println("Finished evaluating Question #" + entry.getKey());
+            System.out.println("✅ Finished evaluating Question #" + entry.getKey());
         }
     
-        // Step 5: End of Game — Print and send leaderboard
-        System.out.println("\nFinal Leaderboard:");
+        // Print + send leaderboard
         List<ClientInfo> sortedClients = new ArrayList<>(getAllClients());
         sortedClients.sort(Comparator.comparingInt(ClientInfo::getScore).reversed());
-    
         List<String> leaderboardLines = new ArrayList<>();
     
         for (ClientInfo client : sortedClients) {
@@ -296,21 +260,18 @@ public class TCPServerFile
     
         String[] leaderboardData = leaderboardLines.toArray(new String[0]);
         for (ClientInfo client : sortedClients) {
-            try (Socket socket = new Socket(client.getIp(), client.getPort());
-                 OutputStream out = socket.getOutputStream()) {
-    
-                TCPPacket resultsPacket = new TCPPacket(client.getNodeId(), "results", leaderboardData, 0);
-                out.write(serialize(resultsPacket));
-                out.flush();
-    
-            } catch (IOException e) {
-                System.err.println("Could not send leaderboard to Node " + client.getNodeId());
-                e.printStackTrace();
+            ObjectOutputStream out = client.getOutputStream();
+            if (out != null) {
+                try {
+                    out.writeObject(new TCPPacket(client.getNodeId(), "results", leaderboardData, 0));
+                    out.flush();
+                } catch (IOException ignored) {}
             }
         }
     
-        System.out.println("\nAll questions complete!");
+        System.out.println("\n🎉 All questions complete!");
     }
+    
 
 	private Runnable listenerTask = () -> {
     DateTimeFormatter formatter = DateTimeFormatter.ISO_DATE_TIME;
@@ -366,21 +327,20 @@ public class TCPServerFile
 
 private class ClientHandler implements Runnable {
     private Socket clientSocket;
-    private DataInputStream in;
-    private DataOutputStream out;
+    private ObjectInputStream in;
+    private ObjectOutputStream out;
     private int nodeId;
 
     public ClientHandler(Socket socket) {
         this.clientSocket = socket;
 
         try {
-            this.in = new DataInputStream(clientSocket.getInputStream());
-            this.out = new DataOutputStream(clientSocket.getOutputStream());
+            this.out = new ObjectOutputStream(clientSocket.getOutputStream());
+            this.in = new ObjectInputStream(clientSocket.getInputStream());
 
             String clientIp = clientSocket.getInetAddress().getHostAddress();
             int clientPort = clientSocket.getPort();
 
-            // Check if this client has connected before
             Integer existingId = ipToNodeId.get(clientIp);
             if (existingId != null) {
                 this.nodeId = existingId;
@@ -389,12 +349,14 @@ private class ClientHandler implements Runnable {
                 ipToNodeId.put(clientIp, this.nodeId);
             }
 
-            // Register or update the client
             registerClient(nodeId, clientIp, clientPort);
 
-            // Send nodeId back to client
-            TCPPacket idPacket = new TCPPacket(nodeId, "id", null, 0);
-            out.write(serialize(idPacket));
+            ClientInfo client = getClientInfo(nodeId);
+            if (client != null) {
+                client.setOutputStream(out);
+            }
+
+            out.writeObject(new TCPPacket(nodeId, "id", null, 0));
             out.flush();
 
         } catch (IOException e) {
@@ -406,34 +368,26 @@ private class ClientHandler implements Runnable {
         System.out.println("Client connected: " + clientSocket.getInetAddress());
         try {
             while (!clientSocket.isClosed()) {
-                byte[] readBuffer = new byte[200];
-                int bytesRead = in.read(readBuffer);
-                if (bytesRead == -1) {
-                    break; // Client disconnected
-                }
-    
-                TCPPacket packet = (TCPPacket) deserialize(readBuffer);
-    
+                TCPPacket packet = (TCPPacket) in.readObject();
+
                 if ("My Answer".equals(packet.getMessage())) {
                     String[] data = packet.getData();
                     if (data != null && data.length > 0) {
                         playerAnswers.put(packet.getClientId(), data[0]);
-                        System.out.println("Received answer from Node " + packet.getClientId() + ": " + data[0]);
+                        System.out.println("📩 Received answer from Node " + packet.getClientId() + ": " + data[0]);
                     }
                 }
-    
             }
         } catch (IOException | ClassNotFoundException e) {
-            System.out.println("Client disconnected.");
+            System.out.println("Client " + nodeId + " disconnected.");
         } finally {
             try {
                 clientSocket.close();
                 System.out.println("Closed client socket.");
-        
-                // Mark as inactive
                 ClientInfo client = getClientInfo(nodeId);
                 if (client != null) {
                     client.setActive(false);
+                    client.setOutputStream(null);
                     System.out.println("Node " + nodeId + " marked inactive.");
                 }
             } catch (IOException e) {
@@ -441,8 +395,8 @@ private class ClientHandler implements Runnable {
             }
         }
     }
-}
-public static void main(String[] args) {
+
+}public static void main(String[] args) {
     TCPServerFile fileServer = new TCPServerFile();
     new Thread(fileServer.listenerTask).start(); // UDP listener
     new Thread(fileServer::createSocket).start();
