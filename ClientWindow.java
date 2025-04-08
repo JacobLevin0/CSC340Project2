@@ -298,5 +298,12 @@ public class ClientWindow implements ActionListener
     }
 
 
+	public void resetForNextQuestion() {
+		SwingUtilities.invokeLater(() -> {
+			poll.setEnabled(true);       // Re-enable poll/buzz button
+		});
+	}
+
+
 
 }

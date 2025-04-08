@@ -142,6 +142,9 @@ public class Player
                                 System.out.println(rec.getMessage());
                                 window.setStatus(false);
                                 break;
+                            case "next-question":
+                                window.resetForNextQuestion();
+                                break;
                             default:
                                 System.out.println("Error: No message matched on recieving packet");
                                 break;

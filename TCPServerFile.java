@@ -28,33 +28,31 @@ import java.util.concurrent.Executors;
  * 
  */
 
-public class TCPServerFile 
-{
+public class TCPServerFile {
     private ServerSocket serverSocket = null;
     private Socket socket = null;
     private DataInputStream inStream = null;
     private DataOutputStream outStream = null;
-	private DatagramSocket udpSocket;
-	private List<BuzzMessage> buzzQueue = new ArrayList<>();
+    private DatagramSocket udpSocket;
+    private List<BuzzMessage> buzzQueue = new ArrayList<>();
     private final Map<Integer, ClientInfo> clientMap = new ConcurrentHashMap<>();
     private final Map<Integer, String> playerAnswers = new ConcurrentHashMap<>();
     private final Set<Integer> currentParticipants = ConcurrentHashMap.newKeySet();
     private final Map<String, Integer> ipToNodeId = new ConcurrentHashMap<>();
     private int nextNodeId = 1;
 
-
     public TCPServerFile() {
-		try {
+        try {
             udpSocket = new DatagramSocket(8765);
-        	//socket = new DatagramSocket(9876); // Bind tcpserver to port 9876
-            //executor = Executors.newFixedThreadPool(3); need to make dynamic 
-            //configLoader = new ConfigLoader(); // need to update class to work for trivia
+            // socket = new DatagramSocket(9876); // Bind tcpserver to port 9876
+            // executor = Executors.newFixedThreadPool(3); need to make dynamic
+            // configLoader = new ConfigLoader(); // need to update class to work for trivia
         } catch (SocketException e) {
             e.printStackTrace();
         }
     }
 
-	private byte[] serialize(Object obj) throws IOException {
+    private byte[] serialize(Object obj) throws IOException {
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         ObjectOutputStream oos = new ObjectOutputStream(bos);
         oos.writeObject(obj);
@@ -62,7 +60,7 @@ public class TCPServerFile
         return bos.toByteArray();
     }
 
-	private Object deserialize(byte[] data) throws IOException, ClassNotFoundException {
+    private Object deserialize(byte[] data) throws IOException, ClassNotFoundException {
         ByteArrayInputStream bis = new ByteArrayInputStream(data);
         ObjectInputStream ois = new ObjectInputStream(bis);
         return ois.readObject();
@@ -88,13 +86,15 @@ public class TCPServerFile
     // Set active status
     public void setClientActive(int nodeId, boolean active) {
         ClientInfo client = clientMap.get(nodeId);
-        if (client != null) client.setActive(active);
+        if (client != null)
+            client.setActive(active);
     }
 
     // Update client score
     public void updateClientScore(int nodeId, int score) {
         ClientInfo client = clientMap.get(nodeId);
-        if (client != null) client.setScore(score);
+        if (client != null)
+            client.setScore(score);
     }
 
     // Get full client info
@@ -111,7 +111,7 @@ public class TCPServerFile
         try {
             serverSocket = new ServerSocket(3339);
             System.out.println("Server is listening on port 3339...");
-    
+
             while (true) {
                 Socket client = serverSocket.accept();
                 Thread clientThread = new Thread(new ClientHandler(client));
@@ -121,10 +121,10 @@ public class TCPServerFile
             e.printStackTrace();
         }
     }
-    
+
     public void sendQuestionToAll(String question, String[] choices) {
         TCPPacket questionPacket = new TCPPacket(0, "question", prependQuestionToChoices(question, choices), 0);
-    
+
         for (ClientInfo client : getAllClients()) {
             try {
                 Socket clientSocket = new Socket(client.getIp(), client.getPort());
@@ -138,7 +138,7 @@ public class TCPServerFile
             }
         }
     }
-    
+
     private String[] prependQuestionToChoices(String question, String[] choices) {
         String[] result = new String[choices.length + 1];
         result[0] = question;
@@ -149,28 +149,29 @@ public class TCPServerFile
     public void runTriviaGame() {
         QuestionsLoader loader = new QuestionsLoader();
         loader.readFIle();
-    
-        List<Map.Entry<Integer, QuestionsLoader.QuestionInfo>> entries =
-            new ArrayList<>(loader.getQuestions().entrySet());
+
+        List<Map.Entry<Integer, QuestionsLoader.QuestionInfo>> entries = new ArrayList<>(
+                loader.getQuestions().entrySet());
         entries.sort(Comparator.comparingInt(Map.Entry::getKey));
-    
+
         for (Map.Entry<Integer, QuestionsLoader.QuestionInfo> entry : entries) {
             QuestionsLoader.QuestionInfo q = entry.getValue();
-    
-            String[] choices = {q.option1, q.option2, q.option3, q.option4};
+
+            String[] choices = { q.option1, q.option2, q.option3, q.option4 };
             String[] fullPacket = prependQuestionToChoices(q.question, choices);
             TCPPacket questionPacket = new TCPPacket(0, "question", fullPacket, 0);
             TCPPacket timerPacket = new TCPPacket(0, "timer", null, 15);
-    
+
             System.out.println("\nSending Question #" + entry.getKey());
-    
+
             Set<Integer> currentParticipants = ConcurrentHashMap.newKeySet();
             for (ClientInfo client : getAllClients()) {
                 currentParticipants.add(client.getNodeId());
             }
-    
+
             for (ClientInfo client : getAllClients()) {
-                if (!currentParticipants.contains(client.getNodeId())) continue;
+                if (!currentParticipants.contains(client.getNodeId()))
+                    continue;
                 ObjectOutputStream out = client.getOutputStream();
                 if (out != null) {
                     try {
@@ -183,28 +184,35 @@ public class TCPServerFile
                     }
                 }
             }
-    
-            try { Thread.sleep(15000); } catch (InterruptedException e) { e.printStackTrace(); }
-    
+
+            try {
+                Thread.sleep(15000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
             while (!buzzQueue.isEmpty()) {
                 BuzzMessage buzz = buzzQueue.remove(0);
                 int nodeId = buzz.getClientID();
                 ClientInfo answeringClient = getClientInfo(nodeId);
-                if (answeringClient == null) continue;
-    
+                if (answeringClient == null)
+                    continue;
+
                 for (BuzzMessage b : buzzQueue) {
                     int otherId = b.getClientID();
-                    if (otherId == nodeId) continue;
+                    if (otherId == nodeId)
+                        continue;
                     ClientInfo otherClient = getClientInfo(otherId);
                     ObjectOutputStream out = otherClient != null ? otherClient.getOutputStream() : null;
                     if (out != null) {
                         try {
                             out.writeObject(new TCPPacket(otherId, "negative-ack", null, 0));
                             out.flush();
-                        } catch (IOException ignored) {}
+                        } catch (IOException ignored) {
+                        }
                     }
                 }
-    
+
                 ObjectOutputStream out = answeringClient.getOutputStream();
                 if (out != null) {
                     try {
@@ -216,9 +224,13 @@ public class TCPServerFile
                         continue;
                     }
                 }
-    
-                try { Thread.sleep(10000); } catch (InterruptedException e) { e.printStackTrace(); }
-    
+
+                try {
+                    Thread.sleep(10000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+
                 String givenAnswer = playerAnswers.get(nodeId);
                 String correctAnswer = q.answer.trim();
                 out = answeringClient.getOutputStream();
@@ -237,27 +249,39 @@ public class TCPServerFile
                             out.writeObject(new TCPPacket(nodeId, "wrong", null, 0));
                         }
                         out.flush();
-                    } catch (IOException ignored) {}
+                    } catch (IOException ignored) {
+                    }
                 }
                 playerAnswers.remove(nodeId);
             }
-    
+
             buzzQueue.clear();
             playerAnswers.clear();
+            TCPPacket resetPacket = new TCPPacket(0, "next-question", null, 0);
+            for (ClientInfo client : getAllClients()) {
+                ObjectOutputStream out = client.getOutputStream();
+                if (out != null) {
+                    try {
+                        out.writeObject(resetPacket);
+                        out.flush();
+                    } catch (IOException ignored) {
+                    }
+                }
+            }
             System.out.println("Finished evaluating Question #" + entry.getKey());
         }
-    
+
         // Print + send leaderboard
         List<ClientInfo> sortedClients = new ArrayList<>(getAllClients());
         sortedClients.sort(Comparator.comparingInt(ClientInfo::getScore).reversed());
         List<String> leaderboardLines = new ArrayList<>();
-    
+
         for (ClientInfo client : sortedClients) {
             String line = "Node " + client.getNodeId() + " - Score: " + client.getScore();
             leaderboardLines.add(line);
             System.out.println(line);
         }
-    
+
         String[] leaderboardData = leaderboardLines.toArray(new String[0]);
         for (ClientInfo client : sortedClients) {
             ObjectOutputStream out = client.getOutputStream();
@@ -265,151 +289,153 @@ public class TCPServerFile
                 try {
                     out.writeObject(new TCPPacket(client.getNodeId(), "results", leaderboardData, 0));
                     out.flush();
-                } catch (IOException ignored) {}
+                } catch (IOException ignored) {
+                }
             }
         }
-    
+
         System.out.println("\nAll questions complete!");
     }
-    
 
-	private Runnable listenerTask = () -> {
-    DateTimeFormatter formatter = DateTimeFormatter.ISO_DATE_TIME;
+    private Runnable listenerTask = () -> {
+        DateTimeFormatter formatter = DateTimeFormatter.ISO_DATE_TIME;
 
-    try {
-        while (true) {
-            byte[] buffer = new byte[4096];
-            DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
-            udpSocket.receive(packet);
+        try {
+            while (true) {
+                byte[] buffer = new byte[4096];
+                DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
+                udpSocket.receive(packet);
 
-            Object received = deserialize(packet.getData());
-            
-            if (received instanceof BuzzMessage) {
-                BuzzMessage incoming = (BuzzMessage) received;
-                int clientID = incoming.getClientID();
-                LocalDateTime incomingTime = LocalDateTime.parse(incoming.getTime(), formatter);
+                Object received = deserialize(packet.getData());
 
-                Optional<BuzzMessage> existing = buzzQueue.stream()
-                        .filter(msg -> msg.getClientID() == clientID)
-                        .findFirst();
+                if (received instanceof BuzzMessage) {
+                    BuzzMessage incoming = (BuzzMessage) received;
+                    int clientID = incoming.getClientID();
+                    LocalDateTime incomingTime = LocalDateTime.parse(incoming.getTime(), formatter);
 
-                if (existing.isPresent()) {
-                    LocalDateTime existingTime = LocalDateTime.parse(existing.get().getTime(), formatter);
+                    Optional<BuzzMessage> existing = buzzQueue.stream()
+                            .filter(msg -> msg.getClientID() == clientID)
+                            .findFirst();
 
-                    if (incomingTime.isBefore(existingTime)) {
-                        // Replace with earlier buzz
-                        buzzQueue.remove(existing.get());
-                        buzzQueue.add(incoming);
-                        System.out.println("Replaced Node " + clientID + " with earlier Buzz.");
+                    if (existing.isPresent()) {
+                        LocalDateTime existingTime = LocalDateTime.parse(existing.get().getTime(), formatter);
+
+                        if (incomingTime.isBefore(existingTime)) {
+                            // Replace with earlier buzz
+                            buzzQueue.remove(existing.get());
+                            buzzQueue.add(incoming);
+                            System.out.println("Replaced Node " + clientID + " with earlier Buzz.");
+                        } else {
+                            System.out.println("Ignored later Buzz from Node " + clientID);
+                        }
                     } else {
-                        System.out.println("Ignored later Buzz from Node " + clientID);
+                        buzzQueue.add(incoming);
+                        System.out.println("Buzz received from Node " + clientID + ". Added to buzzQueue.");
                     }
+
+                    // Sort the queue based on time
+                    buzzQueue.sort(Comparator.comparing(b -> LocalDateTime.parse(b.getTime(), formatter)));
+
+                    // Optional: display current queue
+                    System.out.println("Current Buzz Queue:");
+                    buzzQueue
+                            .forEach(msg -> System.out.println("  Node " + msg.getClientID() + " at " + msg.getTime()));
                 } else {
-                    buzzQueue.add(incoming);
-                    System.out.println("Buzz received from Node " + clientID + ". Added to buzzQueue.");
-                }
-
-                // Sort the queue based on time
-                buzzQueue.sort(Comparator.comparing(b -> LocalDateTime.parse(b.getTime(), formatter)));
-
-                // Optional: display current queue
-                System.out.println("Current Buzz Queue:");
-                buzzQueue.forEach(msg ->
-                        System.out.println("  Node " + msg.getClientID() + " at " + msg.getTime()));
-            } else {
-                System.err.println("Received unknown object type.");
-            }
-        }
-    } catch (IOException | ClassNotFoundException e) {
-        e.printStackTrace();
-    }
-};
-
-private class ClientHandler implements Runnable {
-    private Socket clientSocket;
-    private ObjectInputStream in;
-    private ObjectOutputStream out;
-    private int nodeId;
-
-    public ClientHandler(Socket socket) {
-        this.clientSocket = socket;
-
-        try {
-            this.out = new ObjectOutputStream(clientSocket.getOutputStream());
-            this.in = new ObjectInputStream(clientSocket.getInputStream());
-
-            String clientIp = clientSocket.getInetAddress().getHostAddress();
-            int clientPort = clientSocket.getPort();
-
-            Integer existingId = ipToNodeId.get(clientIp);
-            if (existingId != null) {
-                this.nodeId = existingId;
-            } else {
-                this.nodeId = assignNodeId();
-                ipToNodeId.put(clientIp, this.nodeId);
-            }
-
-            registerClient(nodeId, clientIp, clientPort);
-
-            ClientInfo client = getClientInfo(nodeId);
-            if (client != null) {
-                client.setOutputStream(out);
-            }
-
-            out.writeObject(new TCPPacket(nodeId, "id", null, 0));
-            out.flush();
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    public void run() {
-        System.out.println("Client connected: " + clientSocket.getInetAddress());
-        try {
-            while (!clientSocket.isClosed()) {
-                TCPPacket packet = (TCPPacket) in.readObject();
-
-                if ("My Answer".equals(packet.getMessage())) {
-                    String[] data = packet.getData();
-                    if (data != null && data.length > 0) {
-                        playerAnswers.put(packet.getClientId(), data[0]);
-                        System.out.println("Received answer from Node " + packet.getClientId() + ": " + data[0]);
-                    }
+                    System.err.println("Received unknown object type.");
                 }
             }
         } catch (IOException | ClassNotFoundException e) {
-            System.out.println("Client " + nodeId + " disconnected.");
-        } finally {
+            e.printStackTrace();
+        }
+    };
+
+    private class ClientHandler implements Runnable {
+        private Socket clientSocket;
+        private ObjectInputStream in;
+        private ObjectOutputStream out;
+        private int nodeId;
+
+        public ClientHandler(Socket socket) {
+            this.clientSocket = socket;
+
             try {
-                clientSocket.close();
-                System.out.println("Closed client socket.");
+                this.out = new ObjectOutputStream(clientSocket.getOutputStream());
+                this.in = new ObjectInputStream(clientSocket.getInputStream());
+
+                String clientIp = clientSocket.getInetAddress().getHostAddress();
+                int clientPort = clientSocket.getPort();
+
+                Integer existingId = ipToNodeId.get(clientIp);
+                if (existingId != null) {
+                    this.nodeId = existingId;
+                } else {
+                    this.nodeId = assignNodeId();
+                    ipToNodeId.put(clientIp, this.nodeId);
+                }
+
+                registerClient(nodeId, clientIp, clientPort);
+
                 ClientInfo client = getClientInfo(nodeId);
                 if (client != null) {
-                    client.setActive(false);
-                    client.setOutputStream(null);
-                    System.out.println("Node " + nodeId + " marked inactive.");
+                    client.setOutputStream(out);
                 }
+
+                out.writeObject(new TCPPacket(nodeId, "id", null, 0));
+                out.flush();
+
             } catch (IOException e) {
                 e.printStackTrace();
             }
         }
+
+        public void run() {
+            System.out.println("Client connected: " + clientSocket.getInetAddress());
+            try {
+                while (!clientSocket.isClosed()) {
+                    TCPPacket packet = (TCPPacket) in.readObject();
+
+                    if ("My Answer".equals(packet.getMessage())) {
+                        String[] data = packet.getData();
+                        if (data != null && data.length > 0) {
+                            playerAnswers.put(packet.getClientId(), data[0]);
+                            System.out.println("Received answer from Node " + packet.getClientId() + ": " + data[0]);
+                        }
+                    }
+                }
+            } catch (IOException | ClassNotFoundException e) {
+                System.out.println("Client " + nodeId + " disconnected.");
+            } finally {
+                try {
+                    clientSocket.close();
+                    System.out.println("Closed client socket.");
+                    ClientInfo client = getClientInfo(nodeId);
+                    if (client != null) {
+                        client.setActive(false);
+                        client.setOutputStream(null);
+                        System.out.println("Node " + nodeId + " marked inactive.");
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
     }
 
-}public static void main(String[] args) {
-    TCPServerFile fileServer = new TCPServerFile();
-    new Thread(fileServer.listenerTask).start(); // UDP listener
-    new Thread(fileServer::createSocket).start();
+    public static void main(String[] args) {
+        TCPServerFile fileServer = new TCPServerFile();
+        new Thread(fileServer.listenerTask).start(); // UDP listener
+        new Thread(fileServer::createSocket).start();
 
-    new Thread(() -> {
-        try {
-            Thread.sleep(5000); // give time for clients to connect
-            System.out.println("Starting trivia game...");
-            fileServer.runTriviaGame();
-        } catch (InterruptedException e) {
-            System.err.println("Trivia thread was interrupted.");
-            e.printStackTrace();
-        }
-    }).start();
-}
+        new Thread(() -> {
+            try {
+                Thread.sleep(5000); // give time for clients to connect
+                System.out.println("Starting trivia game...");
+                fileServer.runTriviaGame();
+            } catch (InterruptedException e) {
+                System.err.println("Trivia thread was interrupted.");
+                e.printStackTrace();
+            }
+        }).start();
+    }
 }
