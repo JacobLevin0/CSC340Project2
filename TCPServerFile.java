@@ -259,7 +259,15 @@ public class TCPServerFile {
             buzzQueue.clear();
             playerAnswers.clear();
             answeredList.clear(); 
-            
+            for (ClientInfo client : getAllClients()) {
+                ObjectOutputStream out = client.getOutputStream();
+                if (out != null) {
+                    try {
+                        out.writeObject(new TCPPacket(client.getNodeId(), "negative-ack", null, 0));
+                        out.flush();
+                    } catch (IOException ignored) {}
+                }
+            }
             TCPPacket resetPacket = new TCPPacket(0, "next-question", null, 0);
             for (ClientInfo client : getAllClients()) {
                 ObjectOutputStream out = client.getOutputStream();

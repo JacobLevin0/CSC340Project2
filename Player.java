@@ -142,9 +142,6 @@ public class Player
                                 System.out.println(rec.getMessage());
                                 window.setStatus(false);
                                 break;
-                            case "next-question":
-                                window.resetForNextQuestion();
-                                break;
                             case "score":
                                 window.updateScore(rec.getScore());
                             default:
@@ -225,12 +222,12 @@ public class Player
     public void poll(){
         Thread buzzThread = new Thread(){
             public void run(){
-                int clientID = 1;
+                //int clientID = 1;
                 
                 try {
                     LocalDateTime time = LocalDateTime.now();
                     BuzzMessage packet = new BuzzMessage(clientID, 1, "buzz", time.toString());
-                    InetAddress serverAddress = InetAddress.getLocalHost(); //fill in
+                    InetAddress serverAddress = socket.getInetAddress(); //fill in
                     int serverPort = 8765; //fill in
                     try {
                         byte[] data = serialize(packet);
