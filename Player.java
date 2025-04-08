@@ -142,6 +142,9 @@ public class Player
                                 System.out.println(rec.getMessage());
                                 window.setStatus(false);
                                 break;
+                            case "next-question":
+                                window.resetForNextQuestion();
+                                break;
                             case "score":
                                 window.updateScore(rec.getScore());
                             default:
