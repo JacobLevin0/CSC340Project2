@@ -114,6 +114,7 @@ public class Player
                         switch (rec.getMessage()) {
                             case "id":
                                 clientID = rec.getClientId();
+                                window.setStatus(false);
                                 break;
                             case "question":
                                 window.updateQuestion(rec.getData());
