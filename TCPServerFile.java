@@ -252,16 +252,8 @@ public class TCPServerFile
             buzzQueue.clear();
             playerAnswers.clear();
             answeredList.clear(); 
+            
             System.out.println("Finished evaluating Question #" + entry.getKey());
-            for(ClientInfo client : getAllClients()) {
-                ObjectOutputStream out = client.getOutputStream();
-                if (out != null) {
-                    try {
-                        out.writeObject(new TCPPacket(client.getNodeId(), "negative-ack", null, 0));
-                        out.flush();
-                    } catch (IOException ignored) {}
-                }
-            }
         }
 
     
