@@ -57,7 +57,7 @@ public class Player
     	//create a socket to connect to localHost's (127.0.0.1) port 3339
         try 
         {
-			socket = new Socket("localHost", 3339);
+			socket = new Socket( "10.111.160.107", 3339);
             UDPSocket = new DatagramSocket(8766);
 			System.out.println("Connected!");
 		} 
