@@ -57,7 +57,7 @@ public class Player
     	//create a socket to connect to localHost's (127.0.0.1) port 3339
         try 
         {
-			socket = new Socket("localHost", 3339);
+			socket = new Socket( "10.111.160.107", 3339);
             UDPSocket = new DatagramSocket(8766);
 			System.out.println("Connected!");
 		} 
@@ -123,7 +123,7 @@ public class Player
                                 window.updateTimerDuration(rec.getScore());
                                 break;
                             case "results":
-                                System.out.println();
+                                window.displayResults(rec.getData());
                                 break;
                             case "correct":
                                 window.updateScore(10);
@@ -142,6 +142,8 @@ public class Player
                                 System.out.println(rec.getMessage());
                                 window.setStatus(false);
                                 break;
+                            case "score":
+                                window.updateScore(rec.getScore());
                             default:
                                 System.out.println("Error: No message matched on recieving packet");
                                 break;
