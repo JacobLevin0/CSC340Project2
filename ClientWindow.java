@@ -280,6 +280,9 @@ public class ClientWindow implements ActionListener
 	}
 
 	public void updateTimerDuration(int time){
+		if(clock!=null){
+			clock.cancel();
+		}
 		clock = new TimerCode(time);
 		Timer t = new Timer();
 		t.schedule(clock, 0, 1000);
