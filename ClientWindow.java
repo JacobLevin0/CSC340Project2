@@ -32,7 +32,67 @@ public class ClientWindow implements ActionListener
 	
 	public ClientWindow(Player player)
 	{
-		JOptionPane.showMessageDialog(window, "This is a trivia game");
+
+
+		this.player = player;
+        ableToAnswer = false;
+        score = 0;
+        currAnswer = "";
+
+        window = new JFrame("Trivia Game");
+        JOptionPane.showMessageDialog(window, "Welcome to the Trivia Game!");
+
+        // Question
+        question = new JLabel("Waiting for question...");
+        question.setBounds(10, 5, 380, 100);
+        window.add(question);
+
+        // Options
+        options = new JRadioButton[4];
+        optionGroup = new ButtonGroup();
+        for (int i = 0; i < options.length; i++) {
+            options[i] = new JRadioButton("Option " + (i + 1));
+            options[i].addActionListener(this);
+            options[i].setBounds(10, 110 + (i * 30), 350, 30);
+            window.add(options[i]);
+            optionGroup.add(options[i]);
+        }
+
+        // Timer
+        timer = new JLabel("TIMER");
+        timer.setBounds(250, 250, 100, 20);
+        window.add(timer);
+
+        // Score
+        scoreLabel = new JLabel("SCORE: 0");
+        scoreLabel.setBounds(50, 250, 150, 20);
+        window.add(scoreLabel);
+
+        // Poll Button
+        poll = new JButton("Poll");
+        poll.setBounds(10, 300, 100, 30);
+        poll.addActionListener(this);
+        poll.setEnabled(true);
+        window.add(poll);
+
+        // Submit Button
+        submit = new JButton("Submit");
+        submit.setBounds(200, 300, 100, 30);
+        submit.addActionListener(this);
+        submit.setEnabled(false);
+        window.add(submit);
+
+        // Window Setup
+        window.setSize(400, 400);
+        window.setLayout(null);
+        window.setVisible(true);
+        window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        window.setResizable(false);
+
+
+
+
+		/*JOptionPane.showMessageDialog(window, "This is a trivia game");
 		
 		window = new JFrame("Trivia");
 		question = new JLabel("Q1. This is a sample question"); // represents the question
@@ -83,7 +143,7 @@ public class ClientWindow implements ActionListener
 
 		this.player = player;
 		ableToAnswer = false;
-		score = 0;
+		score = 0; */
 	}
 
 	// this method is called when you check/uncheck any radio button
@@ -91,7 +151,41 @@ public class ClientWindow implements ActionListener
 	@Override
 	public void actionPerformed(ActionEvent e)
 	{
-		System.out.println("You clicked " + e.getActionCommand());
+
+		String input = e.getActionCommand();
+
+        switch (input) {
+            case "Poll":
+                player.poll();
+                break;
+            case "Submit":
+                if (ableToAnswer) {
+                    for (JRadioButton rb : options) {
+                        if (rb.isSelected()) {
+                            currAnswer = rb.getText();
+                            break;
+                        }
+                    }
+                    if (!currAnswer.isEmpty()) {
+                        player.createWriteThread("My Answer");
+                        setStatus(false);
+                        poll.setEnabled(false);
+                        submit.setEnabled(false);
+                    } else {
+                        JOptionPane.showMessageDialog(window, "Please select an option first.");
+                    }
+                }
+                break;
+            default:
+                // Radio buttons clicked
+                currAnswer = input;
+                break;
+        }
+
+
+
+
+	 /* 	System.out.println("You clicked " + e.getActionCommand());
 		
 		// input refers to the radio button you selected or button you clicked
 		String input = e.getActionCommand();  
@@ -132,8 +226,8 @@ public class ClientWindow implements ActionListener
 		// you can also enable disable radio buttons
 //		options[random.nextInt(4)].setEnabled(false);
 //		options[random.nextInt(4)].setEnabled(true);
-		// TILL HERE ***
-		
+		// TILL HERE *** 
+		*/
 	}
 	
 	// this class is responsible for running the timer on the window
@@ -147,24 +241,20 @@ public class ClientWindow implements ActionListener
 		@Override
 		public void run()
 		{
-			if(duration < 0)
-			{
-				timer.setText("Timer expired");
-				window.repaint();
-				this.cancel();  // cancel the timed task
-				return;
-				// you can enable/disable your buttons for poll/submit here as needed
-			}
-			
-			if(duration < 6)
-				timer.setForeground(Color.red);
-			else
-				timer.setForeground(Color.black);
-			
-			timer.setText(duration+"");
-			duration--;
-			window.repaint();
-		}
+			if (duration < 0) {
+                timer.setText("Timer expired");
+                poll.setEnabled(true);
+                submit.setEnabled(false);
+                setStatus(false);
+                this.cancel();
+                return;
+            }
+
+            timer.setForeground(duration < 6 ? Color.RED : Color.BLACK);
+            timer.setText("Time: " + duration + "s");
+            duration--;
+            window.repaint();
+        }
 	}
 	
 	public void updateQuestion(String[] newQ){
@@ -176,10 +266,13 @@ public class ClientWindow implements ActionListener
 
 	public void setStatus(boolean status){
 		ableToAnswer = status;
+		poll.setEnabled(!status);   // Only buzz if not already active
+		submit.setEnabled(status); // Only submit if active
 	}
 
 	public void updateScore(int change){
 		score = score + change;
+		scoreLabel.setText("SCORE: " + score);
 	}
 
 	public String getAnswer(){
@@ -191,4 +284,16 @@ public class ClientWindow implements ActionListener
 		Timer t = new Timer();
 		t.schedule(clock, 0, 1000);
 	}
+
+
+	public void displayResults(String[] results) {
+        StringBuilder sb = new StringBuilder("Final Results:\n\n");
+        for (String line : results) {
+            sb.append(line).append("\n");
+        }
+        JOptionPane.showMessageDialog(window, sb.toString(), "Game Over", JOptionPane.INFORMATION_MESSAGE);
+    }
+
+
+
 }
