@@ -123,7 +123,7 @@ public class Player
                                 window.updateTimerDuration(rec.getScore());
                                 break;
                             case "results":
-                                System.out.println();
+                                window.displayResults(rec.getData());
                                 break;
                             case "correct":
                                 window.updateScore(10);
@@ -142,6 +142,8 @@ public class Player
                                 System.out.println(rec.getMessage());
                                 window.setStatus(false);
                                 break;
+                            case "score":
+                                window.updateScore(rec.getScore());
                             default:
                                 System.out.println("Error: No message matched on recieving packet");
                                 break;
