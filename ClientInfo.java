@@ -23,6 +23,8 @@ public class ClientInfo {
     // Setters
     public void setActive(boolean active) { isActive = active; }
     public void setScore(int score) { this.score = score; }
+    public void setIp(String ip) { this.ip = ip; }
+    public void setPort(int port) { this.port = port; }
 
     @Override
     public String toString() {
