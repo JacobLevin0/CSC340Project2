@@ -40,6 +40,7 @@ public class TCPServerFile
     private final Map<Integer, String> playerAnswers = new ConcurrentHashMap<>();
     private final Set<Integer> currentParticipants = ConcurrentHashMap.newKeySet();
     private final Map<String, Integer> ipToNodeId = new ConcurrentHashMap<>();
+    private final Set<Integer> answeredList = ConcurrentHashMap.newKeySet();
     private int nextNodeId = 1;
 
 
@@ -185,16 +186,22 @@ public class TCPServerFile
             }
     
             try { Thread.sleep(15000); } catch (InterruptedException e) { e.printStackTrace(); }
+
+            answeredList.clear();
     
             while (!buzzQueue.isEmpty()) {
                 BuzzMessage buzz = buzzQueue.remove(0);
                 int nodeId = buzz.getClientID();
+                if (answeredList.contains(nodeId)) continue;
+
+                answeredList.add(nodeId);
+
                 ClientInfo answeringClient = getClientInfo(nodeId);
                 if (answeringClient == null) continue;
-    
+
                 for (BuzzMessage b : buzzQueue) {
                     int otherId = b.getClientID();
-                    if (otherId == nodeId) continue;
+                    if (otherId == nodeId || answeredList.contains(otherId)) continue;
                     ClientInfo otherClient = getClientInfo(otherId);
                     ObjectOutputStream out = otherClient != null ? otherClient.getOutputStream() : null;
                     if (out != null) {
@@ -204,7 +211,7 @@ public class TCPServerFile
                         } catch (IOException ignored) {}
                     }
                 }
-    
+
                 ObjectOutputStream out = answeringClient.getOutputStream();
                 if (out != null) {
                     try {
@@ -216,9 +223,9 @@ public class TCPServerFile
                         continue;
                     }
                 }
-    
+
                 try { Thread.sleep(10000); } catch (InterruptedException e) { e.printStackTrace(); }
-    
+
                 String givenAnswer = playerAnswers.get(nodeId);
                 String correctAnswer = q.answer.trim();
                 out = answeringClient.getOutputStream();
@@ -241,11 +248,13 @@ public class TCPServerFile
                 }
                 playerAnswers.remove(nodeId);
             }
-    
+
             buzzQueue.clear();
             playerAnswers.clear();
+            answeredList.clear(); 
             System.out.println("Finished evaluating Question #" + entry.getKey());
         }
+
     
         // Print + send leaderboard
         List<ClientInfo> sortedClients = new ArrayList<>(getAllClients());
@@ -403,7 +412,7 @@ private class ClientHandler implements Runnable {
 
     new Thread(() -> {
         try {
-            Thread.sleep(5000); // give time for clients to connect
+            Thread.sleep(10000); // give time for clients to connect
             System.out.println("Starting trivia game...");
             fileServer.runTriviaGame();
         } catch (InterruptedException e) {
