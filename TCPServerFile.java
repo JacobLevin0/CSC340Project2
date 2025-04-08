@@ -9,6 +9,7 @@ import java.net.SocketException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
@@ -175,7 +176,7 @@ public class TCPServerFile
     
                 try (Socket clientSocket = new Socket(client.getIp(), client.getPort());
                      OutputStream out = clientSocket.getOutputStream()) {
-    
+                    System.out.println("Sending to clients: " + Arrays.toString(fullPacket));
                     out.write(serialize(questionPacket));
                     out.flush();
     
@@ -444,13 +445,15 @@ private class ClientHandler implements Runnable {
 public static void main(String[] args) {
     TCPServerFile fileServer = new TCPServerFile();
     new Thread(fileServer.listenerTask).start(); // UDP listener
-    fileServer.createSocket(); // TCP listener
+    new Thread(fileServer::createSocket).start();
 
     new Thread(() -> {
         try {
             Thread.sleep(5000); // give time for clients to connect
+            System.out.println("Starting trivia game...");
             fileServer.runTriviaGame();
         } catch (InterruptedException e) {
+            System.err.println("Trivia thread was interrupted.");
             e.printStackTrace();
         }
     }).start();
