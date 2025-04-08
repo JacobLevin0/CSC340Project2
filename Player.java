@@ -190,10 +190,10 @@ public class Player
                         
                         if (packet != null) 
                         {
-                            byte[] sendPacket = serialize(packet);
+                            ///byte[] sendPacket = serialize(packet);
                             synchronized (socket) 
                             {
-                                outStream.write(sendPacket);
+                                outStream.writeObject(packet);
                             }
                             sleep(100);
                         }
