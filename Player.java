@@ -114,6 +114,7 @@ public class Player
                         switch (rec.getMessage()) {
                             case "id":
                                 clientID = rec.getClientId();
+                                window.setStatus(false);
                                 break;
                             case "question":
                                 window.updateQuestion(rec.getData());
@@ -190,10 +191,10 @@ public class Player
                         
                         if (packet != null) 
                         {
-                            byte[] sendPacket = serialize(packet);
+                            ///byte[] sendPacket = serialize(packet);
                             synchronized (socket) 
                             {
-                                outStream.write(sendPacket);
+                                outStream.writeObject(packet);
                             }
                             sleep(100);
                         }
