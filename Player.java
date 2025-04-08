@@ -116,7 +116,6 @@ public class Player
                             switch (rec.getMessage()) {
                                 case "id":
                                     clientID = rec.getClientId();
-                                    break;
                                 case "question":
                                     window.updateQuestion(rec.getData());
                                     break;
@@ -134,7 +133,6 @@ public class Player
                                     break;
                                 case "NA":
                                     window.updateScore(-20);
-                                    break;
                                 case "ack":
                                     System.out.println(rec.getMessage());
                                     window.setStatus(true);
