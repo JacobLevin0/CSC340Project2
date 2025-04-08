@@ -18,8 +18,8 @@ public class Player
 {
     private Socket socket = null;
     private DatagramSocket UDPSocket = null;
-    private InputStream inStream = null;
-    private OutputStream outStream = null;
+    private ObjectInputStream inStream = null;
+    private ObjectOutputStream outStream = null;
     private ClientWindow window; 
     private int clientID;
 
@@ -80,8 +80,8 @@ public class Player
         try 
         {
         	//fetch the streams
-            inStream = socket.getInputStream();
-            outStream = socket.getOutputStream();
+            inStream = new ObjectInputStream(socket.getInputStream());
+            outStream = new ObjectOutputStream(socket.getOutputStream());
             createReadThread();
             //createWriteThread();
         } 
@@ -105,55 +105,48 @@ public class Player
                 {
                     try 
                     {
-                        byte[] readBuffer = new byte[200];
-                        int num = inStream.read(readBuffer);
-                        if (num > 0) 
-                        {
-                            byte[] arrayBytes = new byte[num];
-                            System.arraycopy(readBuffer, 0, arrayBytes, 0, num);
-                            TCPPacket rec = (TCPPacket) deserialize(arrayBytes);
-                            //String recvedMessage = new String(arrayBytes, "UTF-8");
-                            switch (rec.getMessage()) {
-                                case "id":
-                                    clientID = rec.getClientId();
-                                    break;
-                                case "question":
-                                    window.updateQuestion(rec.getData());
-                                    break;
-                                case "timer":
-                                    window.updateTimerDuration(rec.getScore());
-                                    break;
-                                case "results":
-                                    System.out.println();
-                                    break;
-                                case "correct":
-                                    window.updateScore(10);
-                                    break;
-                                case "wrong":
-                                    window.updateScore(-10);
-                                    break;
-                                case "NA":
-                                    window.updateScore(-20);
-                                    break;
-                                case "ack":
-                                    System.out.println(rec.getMessage());
-                                    window.setStatus(true);
-                                    break;
-                                case "negative-ack":
-                                    System.out.println(rec.getMessage());
-                                    window.setStatus(false);
-                                    break;
-                                default:
-                                    System.out.println("Error: No message matched on recieving packet");
-                                    break;
-                            }
+                        
+                        Object obj = inStream.readObject();
+                        TCPPacket rec = (TCPPacket) obj;
+                        System.out.println("very much reading");
+                        //TCPPacket rec = (TCPPacket) deserialize(arrayBytes);
+                        //String recvedMessage = new String(arrayBytes, "UTF-8");
+                        switch (rec.getMessage()) {
+                            case "id":
+                                clientID = rec.getClientId();
+                                break;
+                            case "question":
+                                window.updateQuestion(rec.getData());
+                                break;
+                            case "timer":
+                                window.updateTimerDuration(rec.getScore());
+                                break;
+                            case "results":
+                                System.out.println();
+                                break;
+                            case "correct":
+                                window.updateScore(10);
+                                break;
+                            case "wrong":
+                                window.updateScore(-10);
+                                break;
+                            case "NA":
+                                window.updateScore(-20);
+                                break;
+                            case "ack":
+                                System.out.println(rec.getMessage());
+                                window.setStatus(true);
+                                break;
+                            case "negative-ack":
+                                System.out.println(rec.getMessage());
+                                window.setStatus(false);
+                                break;
+                            default:
+                                System.out.println("Error: No message matched on recieving packet");
+                                break;
+                        }
                             
-                            System.out.println("Received message :" + rec);
-                        }
-                        else 
-                        {
-                        	notifyAll();
-                        }
+                        System.out.println("Received message :" + rec);
                     }
                     catch (SocketException se)
                     {
