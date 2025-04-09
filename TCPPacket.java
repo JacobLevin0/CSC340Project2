@@ -1,6 +1,6 @@
 import java.io.Serializable;
 
-/**
+/*
  * Represents a TCP packet used for communication between the client and server
  * in a trivia game. This class holds a client ID, a message string, an array of
  * string data, and a score value. It implements Serializable to allow the object
