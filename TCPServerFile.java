@@ -392,6 +392,7 @@ public class TCPServerFile {
                 }
 
                 out.writeObject(new TCPPacket(nodeId, "id", null, 0));
+                out.writeObject(new TCPPacket(nodeId, "score", null, getClientInfo(nodeId).getScore()));
                 out.flush();
 
             } catch (IOException e) {
