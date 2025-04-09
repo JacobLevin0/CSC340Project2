@@ -3,20 +3,20 @@ Question Number| Question | Option 1 | Option 2 | Option 3 | Option 4 | Answer
 2 Which planet is known as the Red Planet? | Venus | Jupiter | Mars | Saturn | Mars
 3 Who wrote Romeo and Juliet? | Charles Dickens | William Shakespeare | Mark Twain | Jane Austen | William Shakespeare
 4 What is the chemical symbol for gold? | Ag | Au | Pb | Fe | Au
-5 Which country is famous for inventing pizza? | France | Greece | Italy | Spain | Italy
-6 What is the largest ocean on Earth? | Atlantic Ocean | Indian Ocean | Arctic Ocean | Pacific Ocean | Pacific Ocean
-7 Which gas do plants primarily use for photosynthesis? | Oxygen | Carbon dioxide | Nitrogen | Hydrogen | Carbon dioxide
-8 Who painted the Mona Lisa? | Vincent van Gogh | Leonardo da Vinci | Pablo Picasso | Michelangelo | Leonardo da Vinci
-9 What is the smallest unit of life? | Atom | Cell | Molecule | Tissue | Cell
-10 Which element is essential for breathing and life? | Hydrogen | Oxygen | Nitrogen | Helium | Oxygen
+5 If time was reversed, which way would the moon rise? | North | South | East | West | West
+6 If you were to walk 500 miles downwards into the Earth, and then walk 500 more, where would you be? | The crust | The mantle | The outer core | The inner core | The mantle
+7 If one of these people somehow lost their stirrup, which would be the least upset? | Mozart | Beethoven | Chopin | Bach | Beethoven
+8 If you were to go to 1350's Europe, what might you want to get vaccinated for? | Polio | Smallpox | COVID-19 | Bubonic Plague | Bubonic Plague
+9 A mean person called me STRUTHIOUS. What does that even mean? | You are incredibly poor. | You look like an ostrich. | You have the brains of a potato. | You are very rude yourself. | You look like an ostrich.
+10 Okay, back to some normal questions. What is the longest river in the world? | Amazon River | Mississippi River | Nile River | Yangtze River | Nile River
 11 Which continent is home to the Amazon Rainforest? | Africa | Asia | South America | Australia | South America
 12 Who was the first person to walk on the moon? | Buzz Aldrin | Yuri Gagarin | Neil Armstrong | John Glenn | Neil Armstrong
 13 What is the hardest natural substance on Earth? | Iron | Gold | Diamond | Quartz | Diamond
-14 Which country has the most spoken native language in the world? | USA | China | India | Brazil | China
-15 How many sides does a hexagon have? | 4 | 5 | 6 | 8 | 6
-16 What is the longest river in the world? | Amazon River | Mississippi River | Nile River | Yangtze River | Nile River
+14 Which country has the most spoken native languages in the world? | USA | China | India | Brazil | China
+15 Which of these events is the unlikeliest? | Getting struck by lightning | Shark attack | Winning the jackpot in the lottery | Getting struck by a meteor | Winning the jackpot in the lottery
+16 Which landmark is known as "La Liberté éclairant le monde"? | Empire State Building | Chrysler Building | Statue of Liberty | Brooklyn Bridge | Statue of Liberty
 17 What is the tallest mountain in the world? | Mount Kilimanjaro | Mount Everest | Mount McKinley | Mount Fuji | Mount Everest
-18 Which instrument has 88 keys? | Guitar | Piano | Violin | Trumpet | Piano
-19 What is the chemical formula for water? | CO₂ | H₂O | O₂ | CH₄ | H₂O
-20 Which New York landmark is known as "Lady Liberty"? | Empire State Building | Chrysler Building | Statue of Liberty | Brooklyn Bridge | Statue of Liberty
+18 Which of these characters can I NOT use under copyright law in my totally original book I'm writing? | Sherlock Holmes | Peter Pan | Cat in the Hat | King Kong | Cat in the Hat
+19 Subtract the number of molecules in dihydrogen monoxide from the number of months in the Gregorian Calender. | 19 | 16 | 13 | 9 | 9
+20 It is currently 2:30 AM as I'm writing this, when should I wake up so I get the recommended hours of sleep by the NIH? | 6:30 AM | 8:30 AM | 10:30 AM | 12:30 PM | 10:30 AM
 
