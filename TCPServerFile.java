@@ -22,10 +22,19 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Executors;
 
 /**
+ * TCPServerFile.java
  * 
- * @author cjaiswal
- *
+ * This class serves as the server-side controller for a multiplayer trivia game.
+ * It handles both TCP and UDP communication with clients, manages player sessions,
+ * distributes questions, tracks buzz-ins and scores, and supports reconnections.
  * 
+ * Key features:
+ * - Uses TCP for structured communication (questions, scores, results, timers).
+ * - Uses UDP for low-latency buzz-in detection.
+ * - Dynamically manages connected clients and unique node IDs.
+ * - Runs a real-time, multi-player trivia game loop.
+ * 
+ * Author: Ethan Kulawiak
  */
 
 public class TCPServerFile {
@@ -392,6 +401,7 @@ public class TCPServerFile {
                 }
 
                 out.writeObject(new TCPPacket(nodeId, "id", null, 0));
+                out.writeObject(new TCPPacket(nodeId, "score", null, getClientInfo(nodeId).getScore()));
                 out.flush();
 
             } catch (IOException e) {
