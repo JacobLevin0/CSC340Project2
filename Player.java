@@ -5,13 +5,11 @@ import java.net.InetAddress;
 import java.net.Socket;
 import java.net.SocketException;
 import java.net.UnknownHostException;
-import java.security.SecureRandom;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 /**
+ * This class creates a client for a trivia game 
+ * @author cjaiswal, modified by jlevin
  * 
- * @author cjaiswal
- *
  * 
  */
 public class Player 
@@ -37,27 +35,19 @@ public class Player
         oos.flush();
         return bos.toByteArray();
     }
-
-    /**
-     * Deserializes a byte array back into an object.
-     * 
-     * @param data The byte array to deserialize.
-     * @return The deserialized object.
-     * @throws IOException If an I/O error occurs during deserialization.
-     * @throws ClassNotFoundException If the class of the serialized object cannot be found.
-     */
-    private Object deserialize(byte[] data) throws IOException, ClassNotFoundException {
-        ByteArrayInputStream bis = new ByteArrayInputStream(data);
-        ObjectInputStream ois = new ObjectInputStream(bis);
-        return ois.readObject();
-    }
     
+    /*
+     * Constructor for Player
+     * 
+     * @throws IOException If an I/O error occurs during serialization.
+     * @throws UnknownHostException If the inputed IP can't be found
+     */
     public Player() 
     {
-    	//create a socket to connect to localHost's (127.0.0.1) port 3339
+    	//create a socket to connect to the server's IP on port 3339
         try 
         {
-			socket = new Socket( "10.111.160.107", 3339);
+			socket = new Socket( "10.111.160.107", 3339); //EDIT THIS LINE IF YOU WANT TO CHANGE THE SERVER
             UDPSocket = new DatagramSocket(8766);
 			System.out.println("Connected!");
 		} 
@@ -75,6 +65,12 @@ public class Player
         window = new ClientWindow(this);
     }
 
+    /**
+     * Defines the input and output streams and starts a reading thread
+     * 
+     * @throws IOException If an I/O error occurs during serialization.
+     * @throws UnknownHostException If the inputed IP can't be found
+     */
     public void createSocket()
     {
         try 
@@ -83,7 +79,6 @@ public class Player
             inStream = new ObjectInputStream(socket.getInputStream());
             outStream = new ObjectOutputStream(socket.getOutputStream());
             createReadThread();
-            //createWriteThread();
         } 
         catch (UnknownHostException u) 
         {
@@ -95,6 +90,13 @@ public class Player
         }
     }
 
+    /**
+     * Creates a thread that listens for incoming packets through TCP
+     * 
+     * @throws SocketException If there's trouble accessing a socket
+     * @throws IOException If an I/O error occurs during serialization.
+     * @throws ClassNotFoundException If the TCPPacket is not found as a class as the incoming object is cast to it
+     */
     public void createReadThread() 
     {
         Thread readThread = new Thread() 
@@ -105,54 +107,52 @@ public class Player
                 {
                     try 
                     {
-                        
+                        //accept incoming packet
                         Object obj = inStream.readObject();
                         TCPPacket rec = (TCPPacket) obj;
-                        System.out.println("very much reading");
-                        //TCPPacket rec = (TCPPacket) deserialize(arrayBytes);
-                        //String recvedMessage = new String(arrayBytes, "UTF-8");
-                        switch (rec.getMessage()) {
-                            case "id":
+
+                        switch (rec.getMessage()) { //depending on the received message, do various things
+                            case "id": //set client id
                                 clientID = rec.getClientId();
                                 window.setStatus(false);
                                 break;
-                            case "question":
+                            case "question": //update client window with the next quesiton
                                 window.updateQuestion(rec.getData());
                                 break;
-                            case "timer":
+                            case "next-question": //reseting the client window following a quesiton
+                                window.resetForNextQuestion();
+                                break;
+                            case "timer": //update the timer in the window
                                 window.updateTimerDuration(rec.getScore());
                                 break;
-                            case "results":
+                            case "results": //display the result of the game
                                 window.displayResults(rec.getData());
                                 break;
-                            case "correct":
+                            case "correct": //+10 if user was correct
                                 window.updateScore(10);
                                 break;
-                            case "wrong":
+                            case "wrong": //-10 if user was wrong
                                 window.updateScore(-10);
                                 break;
-                            case "NA":
+                            case "NA": //-20 if user didn't answer
                                 window.updateScore(-20);
                                 break;
-                            case "ack":
+                            case "ack": //able to answer
                                 System.out.println(rec.getMessage());
                                 window.setStatus(true);
                                 break;
-                            case "negative-ack":
+                            case "negative-ack": //not able to answer
                                 System.out.println(rec.getMessage());
                                 window.setStatus(false);
                                 break;
-                            case "next-question":
-                                window.resetForNextQuestion();
-                                break;
-                            case "score":
+                            case "score": //get score if returning or displaying results
                                 window.updateScore(rec.getScore());
                             default:
                                 System.out.println("Error: No message matched on recieving packet");
                                 break;
                         }
                             
-                        System.out.println("Received message :" + rec);
+                        System.out.println("Received message :" + rec.getMessage());
                     }
                     catch (SocketException se)
                     {
@@ -172,6 +172,13 @@ public class Player
         readThread.start();
     }
 
+    /**
+     * Creates a thread that sends outgoing packets through TCP
+     * 
+     * @param TCPMessage The message that goes in the outgoing packet
+     * @throws IOException If an I/O error occurs during serialization.
+     * @throws InterruptedException For when the thread is asleep
+     */
     public void createWriteThread(String TCPMessage) 
     {
         Thread writeThread = new Thread() 
@@ -180,9 +187,7 @@ public class Player
             {
                 	try 
                 	{
-                        /*BufferedReader inputReader = new BufferedReader(new InputStreamReader(System.in));
-                        sleep(100);
-                        String typedMessage = inputReader.readLine();*/
+                        //make the packet based on the TCPMessage
                         TCPPacket packet = null;
                         switch (TCPMessage) {
                             case "My Answer":
@@ -193,10 +198,9 @@ public class Player
                                 System.out.println("Error: No packet with that message can be created");
                                 break;
                         }
-                        
+                        //send packet if not null
                         if (packet != null) 
                         {
-                            ///byte[] sendPacket = serialize(packet);
                             synchronized (socket) 
                             {
                                 outStream.writeObject(packet);
@@ -222,17 +226,23 @@ public class Player
         writeThread.start();
     }
 
+    /**
+     * Creates a thread that sends outgoing packets through UDP
+     * 
+     * @throws IOException If an I/O error occurs during serialization.
+     * @throws Exception For any general exception
+     */
     public void poll(){
         Thread buzzThread = new Thread(){
             public void run(){
-                //int clientID = 1;
-                
                 try {
+                    //create custom packet
                     LocalDateTime time = LocalDateTime.now();
                     BuzzMessage packet = new BuzzMessage(clientID, 1, "buzz", time.toString());
                     InetAddress serverAddress = socket.getInetAddress(); //fill in
                     int serverPort = 8765; //fill in
                     try {
+                        //create and send datagram packet
                         byte[] data = serialize(packet);
                         DatagramPacket sendPacket = new DatagramPacket(data, data.length, serverAddress, serverPort);
                         UDPSocket.send(sendPacket);
@@ -251,9 +261,7 @@ public class Player
 
     public static void main(String[] args) throws Exception 
     {
-        Player myChatClient = new Player();
-        myChatClient.createSocket();
-        /*myChatClient.createReadThread();
-�       myChatClient.createWriteThread();*/
+        Player player = new Player();
+        player.createSocket();
     }
 }
