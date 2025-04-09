@@ -8,6 +8,13 @@ import java.util.TimerTask;
 import java.util.Timer;
 import javax.swing.*;
 
+/**
+ * The ClientWindow class represents the GUI for a multiplayer trivia game client.
+ * It handles displaying questions, answer options, a timer, and a score tracker.
+ * It also allows the player to poll for questions and submit answers.
+ * 
+ * @author Omar Fofana
+ */
 public class ClientWindow implements ActionListener
 {
 	private JButton poll;
@@ -23,17 +30,17 @@ public class ClientWindow implements ActionListener
 	private String currAnswer;
 
 	private Player player;
-	
 	private JFrame window;
-	
 	private static SecureRandom random = new SecureRandom();
-	
-	// write setters and getters as you need
-	
+
+	/**
+	 * Constructs a new ClientWindow with the specified Player object.
+	 * Sets up the user interface and initializes values.
+	 * 
+	 * @param player The Player object representing the current client.
+	 */
 	public ClientWindow(Player player)
 	{
-
-
 		this.player = player;
         ableToAnswer = false;
         score = 0;
@@ -88,70 +95,16 @@ public class ClientWindow implements ActionListener
         window.setVisible(true);
         window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         window.setResizable(false);
-
-
-
-
-		/*JOptionPane.showMessageDialog(window, "This is a trivia game");
-		
-		window = new JFrame("Trivia");
-		question = new JLabel("Q1. This is a sample question"); // represents the question
-		window.add(question);
-		question.setBounds(10, 5, 350, 100);;
-		
-		options = new JRadioButton[4];
-		optionGroup = new ButtonGroup();
-		for(int index=0; index<options.length; index++)
-		{
-			options[index] = new JRadioButton("Option " + (index+1));  // represents an option
-			// if a radio button is clicked, the event would be thrown to this class to handle
-			options[index].addActionListener(this);
-			options[index].setBounds(10, 110+(index*20), 350, 20);
-			window.add(options[index]);
-			optionGroup.add(options[index]);
-		}
-
-		timer = new JLabel("TIMER");  // represents the countdown shown on the window
-		timer.setBounds(250, 250, 100, 20);
-		clock = new TimerCode(30);  // represents clocked task that should run after X seconds
-		Timer t = new Timer();  // event generator
-		t.schedule(clock, 0, 1000); // clock is called every second
-		window.add(timer);
-		
-		
-		scoreLabel = new JLabel("SCORE"); // represents the score
-		scoreLabel.setBounds(50, 250, 100, 20);
-		window.add(scoreLabel);
-
-		poll = new JButton("Poll");  // button that use clicks/ like a buzzer
-		poll.setBounds(10, 300, 100, 20);
-		poll.addActionListener(this);  // calls actionPerformed of this class
-		window.add(poll);
-		
-		submit = new JButton("Submit");  // button to submit their answer
-		submit.setBounds(200, 300, 100, 20);
-		submit.addActionListener(this);  // calls actionPerformed of this class
-		window.add(submit);
-		
-		
-		window.setSize(400,400);
-		window.setBounds(50, 50, 400, 400);
-		window.setLayout(null);
-		window.setVisible(true);
-		window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		window.setResizable(false);
-
-		this.player = player;
-		ableToAnswer = false;
-		score = 0; */
 	}
 
-	// this method is called when you check/uncheck any radio button
-	// this method is called when you press either of the buttons- submit/poll
+	/**
+	 * Handles actions triggered by button and radio button clicks.
+	 * 
+	 * @param e The ActionEvent that was triggered.
+	 */
 	@Override
 	public void actionPerformed(ActionEvent e)
 	{
-
 		String input = e.getActionCommand();
 
         switch (input) {
@@ -181,63 +134,31 @@ public class ClientWindow implements ActionListener
                 currAnswer = input;
                 break;
         }
-
-
-
-
-	 /* 	System.out.println("You clicked " + e.getActionCommand());
-		
-		// input refers to the radio button you selected or button you clicked
-		String input = e.getActionCommand();  
-		switch(input)
-		{
-			case "Option 1":	// Your code here
-								break;
-			case "Option 2":	// Your code here
-								break;
-			case "Option 3":	// Your code here
-								break;
-			case "Option 4":	// Your code here
-								break;
-			case "Poll":		// Your code here
-								player.poll();
-								break;
-			case "Submit":		// Your code here
-								break;
-			default:
-								System.out.println("Incorrect Option");
-		}
-		
-		// test code below to demo enable/disable components
-		// DELETE THE CODE BELOW FROM HERE***
-		if(poll.isEnabled())
-		{
-			poll.setEnabled(false);
-			submit.setEnabled(true);
-		}
-		else
-		{
-			poll.setEnabled(true);
-			submit.setEnabled(false);
-		}
-		
-		question.setText("Q2. This is another test problem " + random.nextInt());
-		
-		// you can also enable disable radio buttons
-//		options[random.nextInt(4)].setEnabled(false);
-//		options[random.nextInt(4)].setEnabled(true);
-		// TILL HERE *** 
-		*/
 	}
 	
-	// this class is responsible for running the timer on the window
+	/**
+	 * A TimerTask responsible for updating the countdown timer on the UI.
+	 * Ends polling and answering capability when time runs out.
+	 * 
+	 * @author Omar Fofana
+	 */
 	public class TimerCode extends TimerTask
 	{
-		private int duration;  // write setters and getters as you need
+		private int duration;
+
+		/**
+		 * Constructs a TimerCode with a specified countdown duration.
+		 * 
+		 * @param duration The starting duration in seconds.
+		 */
 		public TimerCode(int duration)
 		{
 			this.duration = duration;
 		}
+
+		/**
+		 * Executes the countdown logic, updating the timer label every second.
+		 */
 		@Override
 		public void run()
 		{
@@ -256,7 +177,12 @@ public class ClientWindow implements ActionListener
             window.repaint();
         }
 	}
-	
+
+	/**
+	 * Updates the question and available options displayed on the UI.
+	 * 
+	 * @param newQ A String array where the first element is the question, and the next four are the answer options.
+	 */
 	public void updateQuestion(String[] newQ){
 		question.setText(newQ[0]);
 		for(int i = 0; i < 4; i++){
@@ -264,23 +190,43 @@ public class ClientWindow implements ActionListener
 		}
 	}
 
+	/**
+	 * Enables or disables the player's ability to submit answers.
+	 * 
+	 * @param status True to allow answering, false to disable.
+	 */
 	public void setStatus(boolean status){
 		ableToAnswer = status;
-		poll.setEnabled(!status);   // Only buzz if not already active
-		submit.setEnabled(status); // Only submit if active
+		poll.setEnabled(!status);
+		submit.setEnabled(status);
 	}
 
+	/**
+	 * Updates the player's score by a given amount and reflects it on the UI.
+	 * 
+	 * @param change The value to be added to the current score.
+	 */
 	public void updateScore(int change){
 		score = score + change;
 		scoreLabel.setText("SCORE: " + score);
 	}
 
+	/**
+	 * Returns the answer currently selected by the player.
+	 * 
+	 * @return The text of the selected answer.
+	 */
 	public String getAnswer(){
 		return currAnswer;
 	}
 
+	/**
+	 * Starts or resets the timer with a specified duration in seconds.
+	 * 
+	 * @param time The countdown duration in seconds.
+	 */
 	public void updateTimerDuration(int time){
-		if(clock!=null){
+		if(clock != null){
 			clock.cancel();
 		}
 		clock = new TimerCode(time);
@@ -288,7 +234,11 @@ public class ClientWindow implements ActionListener
 		t.schedule(clock, 0, 1000);
 	}
 
-
+	/**
+	 * Displays the final game results in a message dialog.
+	 * 
+	 * @param results An array of result strings to be shown.
+	 */
 	public void displayResults(String[] results) {
         StringBuilder sb = new StringBuilder("Final Results:\n\n");
         for (String line : results) {
@@ -297,13 +247,12 @@ public class ClientWindow implements ActionListener
         JOptionPane.showMessageDialog(window, sb.toString(), "Game Over", JOptionPane.INFORMATION_MESSAGE);
     }
 
-
+	/**
+	 * Prepares the UI for the next question, re-enabling the poll button.
+	 */
 	public void resetForNextQuestion() {
 		SwingUtilities.invokeLater(() -> {
-			poll.setEnabled(true);       // Re-enable poll/buzz button
+			poll.setEnabled(true);
 		});
 	}
-
-
-
 }
